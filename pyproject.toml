@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netbox-backupjobs"
+version = "0.1.0"
+authors = [
+  { name="Bart Van der Biest", email="bart@zimmo.be" },
+]
+description = "BackupJob trackings in NetBox"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+keywords = ["netbox", "netbox-plugin", "Firmware"]
+
+[project.urls]
+"Homepage" = "https://github.com/BartZimmo/netbox_BackupJobs"
+"Bug Tracker" = "https://github.com/BartZimmo/netbox_BackupJobs/issues"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["netbox_backupjobs*"]
