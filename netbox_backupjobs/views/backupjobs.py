@@ -1,7 +1,10 @@
 from django.utils.translation import gettext_lazy as _
 
 from netbox.views import generic
-from utilities.views import register_model_view
+from utilities.views import ViewTab, register_model_view
+
+from virtualization.models import VirtualMachine
+from virtualization.tables import VirtualMachineTable
 
 from netbox_backupjobs.models import BackupJob
 from netbox_backupjobs.tables.backupjobs import BackupJobTable
@@ -17,6 +20,7 @@ __all__ = (
     'BackupJobEditView',
     'BackupJobDeleteView',
     'BackupJobBulkDeleteView',
+    'BackupJobVirtualMachinesView',
 )
 
 
@@ -55,6 +59,22 @@ class BackupJobDeleteView(generic.ObjectDeleteView):
     Delete a BackupJob object.
     """
     queryset = BackupJob.objects.all()
+
+
+@register_model_view(BackupJob, 'virtual_machines')
+class BackupJobVirtualMachinesView(generic.ObjectChildrenView):
+    queryset = BackupJob.objects.all()
+    child_model = VirtualMachine
+    table = VirtualMachineTable
+    tab = ViewTab(
+        label=_('Virtual Machines'),
+        badge=lambda obj: obj.virtual_machines.count(),
+        permission='virtualization.view_virtualmachine',
+        weight=500,
+    )
+
+    def get_children(self, request, parent):
+        return parent.virtual_machines.restrict(request.user, 'view').all()
 
 
 @register_model_view(BackupJob, 'bulk_delete', path='delete', detail=False)

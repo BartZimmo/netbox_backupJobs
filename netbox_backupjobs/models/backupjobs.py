@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 from netbox.models import NetBoxModel, ChangeLoggedModel, NestedGroupModel
+from virtualization.models import VirtualMachine
 from netbox_backupjobs.choices import BackupJobStatusChoices
 
 
@@ -29,6 +30,12 @@ class BackupJob(NetBoxModel):
         choices= BackupJobStatusChoices,
         default= BackupJobStatusChoices.STATUS_ENABLED,
         help_text='Backup job status',
+    )
+    virtual_machines = models.ManyToManyField(
+        VirtualMachine,
+        related_name='backup_jobs',
+        blank=True,
+        help_text='The virtual machines associated with this backup job',
     )
     description = models.CharField(
         help_text='Description of the backup job',
