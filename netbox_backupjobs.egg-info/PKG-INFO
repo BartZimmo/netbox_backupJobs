@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: netbox-backupjobs
+Version: 0.1.0
+Summary: BackupJob trackings in NetBox
+Author-email: Bart Van der Biest <bart@zimmo.be>
+License-Expression: MIT
+Project-URL: Homepage, https://github.com/BartZimmo/netbox_BackupJobs
+Project-URL: Bug Tracker, https://github.com/BartZimmo/netbox_BackupJobs/issues
+Keywords: netbox,netbox-plugin,Firmware
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Dynamic: license-file
+
+# netbox_backupJobs
+This is a netbox plugin for keeping track of backup jobs

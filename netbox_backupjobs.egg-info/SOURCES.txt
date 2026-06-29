@@ -1,0 +1,10 @@
+LICENSE
+README.md
+pyproject.toml
+netbox_backupjobs/__init__.py
+netbox_backupjobs/navigation.py
+netbox_backupjobs/version.py
+netbox_backupjobs.egg-info/PKG-INFO
+netbox_backupjobs.egg-info/SOURCES.txt
+netbox_backupjobs.egg-info/dependency_links.txt
+netbox_backupjobs.egg-info/top_level.txt
