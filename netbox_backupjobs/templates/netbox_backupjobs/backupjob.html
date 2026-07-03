@@ -21,6 +21,10 @@
             <td>{{ object.name }}</td>
           </tr>
           <tr>
+            <th scope="row">{% trans "Description" %}</th>
+            <td>{{ object.description|placeholder }}</td>
+          </tr>
+          <tr>
             <th scope="row">{% trans "Status" %}</th>
             <td>
               <span class="badge text-bg-{{ object.get_status_color }}">
@@ -29,8 +33,66 @@
             </td>
           </tr>
           <tr>
-            <th scope="row">{% trans "Description" %}</th>
-            <td>{{ object.description|placeholder }}</td>
+            <th scope="row">{% trans "Job Type" %}</th>
+            <td>{{ object.jobtype|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Platform" %}</th>
+            <td>{{ object.get_platform_display|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Job Creation Time" %}</th>
+            <td>{{ object.job_creation_time|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Target" %}</th>
+            <td>{{ object.target|placeholder }}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h5 class="card-header">{% trans "Advanced Settings" %}</h5>
+        <table class="table table-hover attr-table">
+          <tr>
+            <th scope="row">{% trans "Algorithm" %}</th>
+            <td>{{ object.get_Algorithm_display }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Deduplication" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_EnableDeduplication_color }}">
+                {{ object.get_EnableDeduplication_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Storage Encryption" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_StorageEncryptionEnabled_color }}">
+                {{ object.get_StorageEncryptionEnabled_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Retain Days to Keep" %}</th>
+            <td>{{ object.RetainDaysToKeep|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Retain Cycles" %}</th>
+            <td>{{ object.RetainCycles|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Deleted VM Data Retention" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_EnableDeletedVmDataRetention_color }}">
+                {{ object.get_EnableDeletedVmDataRetention_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Deleted VM Retain Days" %}</th>
+            <td>{% if object.EnableDeletedVmDataRetention == 'false' %}<s>{% endif %}{{ object.RetainDaysToKeepDeletedVmData|placeholder }}{% if object.EnableDeletedVmDataRetention == 'false' %}</s>{% endif %}</td>
           </tr>
         </table>
       </div>
@@ -40,6 +102,132 @@
 
     </div>
     <div class="col col-md-6">
+
+      <div class="card">
+        <h5 class="card-header">{% trans "Synthetic Full Backup" %}</h5>
+        <table class="table table-hover attr-table">
+          <tr>
+            <th scope="row">{% trans "Synthetic Full (Incremental)" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_TransformFullToSyntethic_color }}">
+                {{ object.get_TransformFullToSyntethic_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Synthetic Full (Reverse Incr.)" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_TransformToSyntheticFull_color }}">
+                {{ object.get_TransformToSyntheticFull_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Kind" %}</th>
+            <td>{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' %}<s>{% endif %}{{ object.get_TransformToSyntethicKind_display }}{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Days of Week" %}</th>
+            <td>{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'monthly' %}<s>{% endif %}{{ object.get_TransformToSyntheticDays_display }}{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'monthly' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Week of Month" %}</th>
+            <td>{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'daily' %}<s>{% endif %}{{ object.get_SyntheticFullDayNumberInMonth_display }}{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'daily' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Day of Week (Monthly)" %}</th>
+            <td>{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'daily' %}<s>{% endif %}{{ object.get_SyntheticFullDayOfWeek_display }}{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'daily' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Months" %}</th>
+            <td>{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'daily' %}<s>{% endif %}{{ object.get_TransformToSyntethicMonthly_display }}{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'daily' %}</s>{% endif %}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h5 class="card-header">{% trans "Active Full Backup" %}</h5>
+        <table class="table table-hover attr-table">
+          <tr>
+            <th scope="row">{% trans "Active Full Backup" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_EnableFullBackup_color }}">
+                {{ object.get_EnableFullBackup_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Kind" %}</th>
+            <td>{% if object.EnableFullBackup == 'false' %}<s>{% endif %}{{ object.get_FullBackupScheduleKind_display }}{% if object.EnableFullBackup == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Days of Week" %}</th>
+            <td>{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'monthly' %}<s>{% endif %}{{ object.get_FullBackupDays_display }}{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'monthly' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Week of Month" %}</th>
+            <td>{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'daily' %}<s>{% endif %}{{ object.get_FullBackupDayNumberInMonth_display }}{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'daily' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Day of Week (Monthly)" %}</th>
+            <td>{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'daily' %}<s>{% endif %}{{ object.get_FullBackupDayOfWeek_display }}{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'daily' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Months" %}</th>
+            <td>{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'daily' %}<s>{% endif %}{{ object.get_FullBackupMonths_display }}{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'daily' %}</s>{% endif %}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h5 class="card-header">{% trans "GFS Retention" %}</h5>
+        <table class="table table-hover attr-table">
+          <tr>
+            <th scope="row">{% trans "GFS Enabled" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_EnableGFS_color }}">
+                {{ object.get_EnableGFS_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Weekly Enabled" %}</th>
+            <td>{% if object.EnableGFS == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_WeeklyEnabled_color }}">{{ object.get_WeeklyEnabled_display }}</span>{% if object.EnableGFS == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Weekly Keep (weeks)" %}</th>
+            <td>{% if object.EnableGFS == 'false' or object.WeeklyEnabled == 'false' %}<s>{% endif %}{{ object.WeeklyKeepBackupsFor|placeholder }}{% if object.EnableGFS == 'false' or object.WeeklyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Weekly Day" %}</th>
+            <td>{% if object.EnableGFS == 'false' or object.WeeklyEnabled == 'false' %}<s>{% endif %}{{ object.get_WeeklyKeepBackupsOnDayOfWeek_display }}{% if object.EnableGFS == 'false' or object.WeeklyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Monthly Enabled" %}</th>
+            <td>{% if object.EnableGFS == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_MonthlyEnabled_color }}">{{ object.get_MonthlyEnabled_display }}</span>{% if object.EnableGFS == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Monthly Keep (months)" %}</th>
+            <td>{% if object.EnableGFS == 'false' or object.MonthlyEnabled == 'false' %}<s>{% endif %}{{ object.MonthlyKeepBackupsFor|placeholder }}{% if object.EnableGFS == 'false' or object.MonthlyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Monthly Week" %}</th>
+            <td>{% if object.EnableGFS == 'false' or object.MonthlyEnabled == 'false' %}<s>{% endif %}{{ object.get_MonthlyKeepBackupsWeekOfMonth_display }}{% if object.EnableGFS == 'false' or object.MonthlyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Yearly Enabled" %}</th>
+            <td>{% if object.EnableGFS == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_YearlyEnabled_color }}">{{ object.get_YearlyEnabled_display }}</span>{% if object.EnableGFS == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Yearly Keep (years)" %}</th>
+            <td>{% if object.EnableGFS == 'false' or object.YearlyEnabled == 'false' %}<s>{% endif %}{{ object.YearlyKeepBackupsFor|placeholder }}{% if object.EnableGFS == 'false' or object.YearlyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row">{% trans "Yearly Month" %}</th>
+            <td>{% if object.EnableGFS == 'false' or object.YearlyEnabled == 'false' %}<s>{% endif %}{{ object.get_YearlyKeepBackupsOnMonthOfYear_display }}{% if object.EnableGFS == 'false' or object.YearlyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+        </table>
+      </div>
 
       {% include 'inc/panels/custom_fields.html' %}
       {% include 'inc/panels/comments.html' %}

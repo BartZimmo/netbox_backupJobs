@@ -7,6 +7,7 @@ from netbox_backupjobs.models import BackupJob
 class BackupJobIndex(SearchIndex):
     model = BackupJob
     fields = (
-         ('name', 100),
+        ('name', 100),
+        ('virtual_machine_names', 300),
     )
-    display_attrs = ('name',)
+    display_attrs = ('name', 'status', 'jobtype', 'platform')

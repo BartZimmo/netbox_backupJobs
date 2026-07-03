@@ -1,3 +1,4 @@
+from django.db.models import Count
 from django.utils.translation import gettext_lazy as _
 
 from netbox.views import generic
@@ -36,7 +37,9 @@ class BackupJobView(generic.ObjectView):
 @register_model_view(BackupJob, 'list', path='', detail=False)
 class BackupJobListView(generic.ObjectListView):
     """List all BackupJob objects."""
-    queryset = BackupJob.objects.all()
+    queryset = BackupJob.objects.annotate(
+        virtual_machine_count=Count('virtual_machines', distinct=True),
+    )
     table = BackupJobTable
     filterset = BackupJobFilterSet
     filterset_form = BackupJobFilterForm

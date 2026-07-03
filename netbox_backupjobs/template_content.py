@@ -4,7 +4,7 @@ from netbox_backupjobs.models import BackupJob
 
 
 class BackupJobTemplateExtension(PluginTemplateExtension):
-    model = 'virtualization.virtualmachine'
+    models = ['virtualization.virtualmachine']
 
     def right_page(self):
         vm = self.context.get('object')
