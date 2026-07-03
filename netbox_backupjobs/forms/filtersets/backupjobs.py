@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 from netbox.forms import NetBoxModelFilterSetForm
 from utilities.forms import BOOLEAN_WITH_BLANK_CHOICES
-from utilities.forms.fields import CommentField, TagFilterField, DynamicModelMultipleChoiceField
+from utilities.forms.fields import TagFilterField, DynamicModelMultipleChoiceField
 from utilities.forms.rendering import FieldSet
 from utilities.forms.widgets import DateTimePicker
 
@@ -35,7 +35,7 @@ class BackupJobFilterForm(NetBoxModelFilterSetForm):
     fieldsets = (
         FieldSet(
             'q', 'name','description', 'target', 'jobtype', 'status', 'platform', 'job_creation_time_after', 'job_creation_time_before',
-            'has_virtual_machines', 'has_powered_off_vms', 'virtual_machine',  'comments', name=_('Backup Job'),
+            'has_virtual_machines', 'has_powered_off_vms', 'virtual_machine', name=_('Backup Job'),
         ),
         FieldSet(
             'Algorithm', 'EnableDeduplication', 'StorageEncryptionEnabled', 'EnableDeletedVmDataRetention',
@@ -110,6 +110,7 @@ class BackupJobFilterForm(NetBoxModelFilterSetForm):
         label=_('Has Powered Off Virtual Machines'),
         widget=forms.Select(choices=BOOLEAN_WITH_BLANK_CHOICES),
     )
+    tag = TagFilterField(BackupJob)
 
     # Advanced settings
     Algorithm = forms.MultipleChoiceField(

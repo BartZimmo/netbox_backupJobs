@@ -1,12 +1,10 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.forms import ValidationError
-from django.urls import reverse
 from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
 
 
-from netbox.models import NetBoxModel, ChangeLoggedModel, NestedGroupModel
+from netbox.models import NetBoxModel
 from virtualization.models import VirtualMachine
 from netbox_backupjobs.choices import (
     BackupJobPlatformChoices,

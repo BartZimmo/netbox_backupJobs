@@ -30,7 +30,7 @@ from ...choices import (
     BackupJobGFSYearlyEnabledChoices,
     BackupJobGFSMonthOfYearChoices,
 )
-from utilities.forms.fields import CommentField, DynamicModelMultipleChoiceField
+from utilities.forms.fields import DynamicModelMultipleChoiceField
 from utilities.forms.utils import add_blank_choice
 from utilities.forms.widgets import DateTimePicker
 
@@ -74,8 +74,8 @@ class BackupJobForm(NetBoxModelForm):
     virtual_machines = DynamicModelMultipleChoiceField(
         queryset=VirtualMachine.objects.all(),
         required=False,
-        label="Virtual Machine",
-        help_text='The virtual machine associated with this backup job',
+        label="Virtual Machines",
+        help_text='The virtual machines associated with this backup job',
     )
 
     # Advanced job settings
