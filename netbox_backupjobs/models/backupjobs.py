@@ -40,6 +40,8 @@ from netbox_backupjobs.choices import (
 ### BackupJob Model
 ### ------------------------------------------------------- ###
 
+# These defaults must be loaded before the class definition, otherwise the default will be evaluated at import time and not at runtime.
+# This is important for the ArrayField fields, as they require a callable to be passed as the default value.
 
 def default_synthetic_days():
     return [BackupJobSyntheticFullDaysChoices.SATURDAY]
