@@ -30,10 +30,11 @@ from ...choices import (
     BackupJobGFSYearlyEnabledChoices,
     BackupJobGFSMonthOfYearChoices,
 )
-from utilities.forms.fields import DynamicModelMultipleChoiceField
+from utilities.forms.fields import DynamicModelChoiceField, DynamicModelMultipleChoiceField
 from utilities.forms.utils import add_blank_choice
 from utilities.forms.widgets import DateTimePicker
 
+from ipam.models import IPAddress
 from virtualization.models import VirtualMachine
 
 __all__ = (
@@ -66,6 +67,19 @@ class BackupJobForm(NetBoxModelForm):
     )
     description = forms.CharField(
         required=False,
+    )
+    backup_server_name = forms.CharField(
+        required=False,
+        label=_('Backup Server Name'),
+        help_text=_(
+            'Used only as a fallback. If the Backup Server IP is assigned to a device or virtual machine in '
+            'NetBox, that name is shown instead.'
+        ),
+    )
+    backup_server_ip = DynamicModelChoiceField(
+        queryset=IPAddress.objects.all(),
+        required=False,
+        label=_('Backup Server IP'),
     )
     target = forms.CharField(
         required=False,
@@ -235,7 +249,7 @@ class BackupJobForm(NetBoxModelForm):
 
     fieldsets = (
         FieldSet(
-            'name', 'description', 'status', 'jobtype', 'platform', 'job_creation_time', 'target', 'virtual_machines', 'tags',
+            'name', 'description', 'status', 'jobtype', 'platform', 'job_creation_time', 'backup_server_name', 'backup_server_ip', 'target', 'virtual_machines', 'tags',
             name=_('Backup Job'),
         ),
         FieldSet(
@@ -271,7 +285,7 @@ class BackupJobForm(NetBoxModelForm):
     class Meta:
         model = BackupJob
         fields = [
-            'name', 'status', 'jobtype', 'platform', 'job_creation_time', 'description', 'target', 'virtual_machines', 'comments', 'tags',
+            'name', 'status', 'jobtype', 'platform', 'job_creation_time', 'description', 'backup_server_name', 'backup_server_ip', 'target', 'virtual_machines', 'comments', 'tags',
             'Algorithm', 'EnableDeduplication', 'StorageEncryptionEnabled',
             'RetainDaysToKeep', 'RetainCycles',
             'EnableDeletedVmDataRetention', 'RetainDaysToKeepDeletedVmData',

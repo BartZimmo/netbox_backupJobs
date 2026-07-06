@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 from netbox.models import NetBoxModel
+from ipam.models import IPAddress
 from virtualization.models import VirtualMachine
 from netbox_backupjobs.choices import (
     BackupJobPlatformChoices,
@@ -121,17 +122,31 @@ class BackupJob(NetBoxModel):
         verbose_name='Description',
         blank=True
     )
-    target = models.CharField(
-        help_text='Target of the backup job',
-        max_length=255,
-        verbose_name='Target',
-        blank=True
-    )
     job_creation_time = models.DateTimeField(
         null=True,
         blank=True,
         verbose_name='Job Creation Time',
         help_text='The date and time when the backup job was created in the backup system',
+    )
+    backup_server_name = models.CharField(
+        blank=True,
+        max_length=255,
+        help_text='The backup server associated with this backup job',
+    )
+    backup_server_ip = models.ForeignKey(
+        to=IPAddress,
+        on_delete=models.SET_NULL,
+        related_name='backup_jobs',
+        blank=True,
+        null=True,
+        verbose_name='Backup Server IP',
+        help_text='The IP address of the backup server associated with this backup job',
+    )
+    target = models.CharField(
+        help_text='Target of the backup job',
+        max_length=255,
+        verbose_name='Target',
+        blank=True
     )
 
     #
@@ -333,14 +348,28 @@ class BackupJob(NetBoxModel):
 
 
     clone_fields = [
-        'name', 'status', 'description', 'comments',
+        'name', 'jobtype', 'platform', 'status', 'virtual_machines', 'description',
+        'backup_server_name', 'backup_server_ip',
+        'Algorithm', 'EnableDeduplication', 'StorageEncryptionEnabled',
+        'RetainDaysToKeep', 'RetainCycles',
+        'EnableDeletedVmDataRetention', 'RetainDaysToKeepDeletedVmData',
+        'TransformFullToSyntethic', 'TransformToSyntheticFull', 'TransformToSyntethicKind',
+        'TransformToSyntheticDays', 'SyntheticFullDayNumberInMonth', 'SyntheticFullDayOfWeek',
+        'TransformToSyntethicMonthly',
+        'EnableFullBackup', 'FullBackupScheduleKind',
+        'FullBackupDays', 'FullBackupDayNumberInMonth', 'FullBackupDayOfWeek', 'FullBackupMonths',
+        'EnableGFS',
+        'WeeklyEnabled', 'WeeklyKeepBackupsFor', 'WeeklyKeepBackupsOnDayOfWeek',
+        'MonthlyEnabled', 'MonthlyKeepBackupsFor', 'MonthlyKeepBackupsWeekOfMonth',
+        'YearlyEnabled', 'YearlyKeepBackupsFor', 'YearlyKeepBackupsOnMonthOfYear',
+        'comments',
     ]
     
 
     class Meta:
         ordering = ('name',)
         verbose_name = 'BackupJob'
-        verbose_name_plural = 'BackupJobs'
+        verbose_name_plural = 'Veeam BackupJobs'
         constraints = [
             models.UniqueConstraint(
                 Lower('name'),
@@ -351,6 +380,18 @@ class BackupJob(NetBoxModel):
 
     def __str__(self):
         return self.name
+
+    @property
+    def backup_server_display(self):
+        """
+        If backup_server_ip is assigned to a device/VM interface, return that device/VM.
+        Otherwise fall back to the manually entered backup_server_name.
+        """
+        if self.backup_server_ip and self.backup_server_ip.assigned_object:
+            parent = getattr(self.backup_server_ip.assigned_object, 'parent_object', None)
+            if parent:
+                return parent
+        return self.backup_server_name
 
     @property
     def virtual_machine_names(self):

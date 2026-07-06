@@ -5,12 +5,12 @@ from netbox.plugins import PluginMenu, PluginMenuItem, PluginMenuButton, get_plu
 backupjobs_items = (
     PluginMenuItem(
         link='plugins:netbox_backupjobs:backupjob_list',
-        link_text='BackupJobs',
+        link_text='Veeam BackupJobs',
         permissions=["netbox_backupjobs.view_backupjob"],
         buttons= [
             PluginMenuButton(
                 link='plugins:netbox_backupjobs:backupjob_add',
-                title='Add BackupJob',
+                title='Add Veeam BackupJob',
                 icon_class='mdi mdi-plus-thick',
                 permissions=["netbox_backupjobs.add_backupjob"],
             ),

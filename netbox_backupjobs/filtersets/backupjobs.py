@@ -26,6 +26,7 @@ from netbox_backupjobs.choices import (
 )
 from netbox_backupjobs.models import BackupJob
 
+from ipam.models import IPAddress
 from virtualization.models import VirtualMachine
 
 @register_filterset
@@ -39,6 +40,14 @@ class BackupJobFilterSet(NetBoxModelFilterSet):
     jobtype = MultiValueCharFilter(
         lookup_expr='icontains',
         label=_('Job Type'),
+    )
+    backup_server_name = MultiValueCharFilter(
+        lookup_expr='icontains',
+        label=_('Backup Server Name'),
+    )
+    backup_server_ip = django_filters.ModelMultipleChoiceFilter(
+        queryset=IPAddress.objects.all(),
+        label=_('Backup Server IP'),
     )
     status = django_filters.MultipleChoiceFilter(
         choices=BackupJobStatusChoices,
@@ -130,7 +139,7 @@ class BackupJobFilterSet(NetBoxModelFilterSet):
     class Meta:
         model = BackupJob
         fields = {
-            'id', 'name', 'target', 'jobtype', 'status', 'platform', 'job_creation_time', 'description', 'virtual_machines', 'comments',
+            'id', 'name', 'target', 'jobtype', 'status', 'platform', 'job_creation_time', 'description', 'backup_server_name', 'backup_server_ip', 'virtual_machines', 'comments',
             'Algorithm', 'EnableDeduplication', 'StorageEncryptionEnabled',
             'EnableDeletedVmDataRetention',
             'TransformFullToSyntethic', 'TransformToSyntheticFull', 'TransformToSyntethicKind',

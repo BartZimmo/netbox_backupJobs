@@ -9,6 +9,8 @@ from utilities.forms.fields import TagFilterField, DynamicModelMultipleChoiceFie
 from utilities.forms.rendering import FieldSet
 from utilities.forms.widgets import DateTimePicker
 
+from ipam.models import IPAddress
+
 from netbox_backupjobs.models import BackupJob
 from netbox_backupjobs.choices import (
     BackupJobPlatformChoices,
@@ -34,7 +36,8 @@ class BackupJobFilterForm(NetBoxModelFilterSetForm):
     model = BackupJob
     fieldsets = (
         FieldSet(
-            'q', 'name','description', 'target', 'jobtype', 'status', 'platform', 'job_creation_time_after', 'job_creation_time_before',
+            'q', 'name','description', 'status', 'jobtype', 'platform', 'job_creation_time_after', 'job_creation_time_before',
+            'backup_server_name', 'backup_server_ip', 'target',
             'has_virtual_machines', 'has_powered_off_vms', 'virtual_machine', name=_('Backup Job'),
         ),
         FieldSet(
@@ -94,6 +97,15 @@ class BackupJobFilterForm(NetBoxModelFilterSetForm):
     description = forms.CharField(
         required=False,
         label='Description',
+    )
+    backup_server_name = forms.CharField(
+        required=False,
+        label=_('Backup Server Name'),
+    )
+    backup_server_ip = DynamicModelMultipleChoiceField(
+        queryset=IPAddress.objects.all(),
+        required=False,
+        label=_('Backup Server IP'),
     )
     virtual_machine = DynamicModelMultipleChoiceField(
         queryset=VirtualMachine.objects.all(),

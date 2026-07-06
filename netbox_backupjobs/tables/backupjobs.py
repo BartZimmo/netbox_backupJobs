@@ -42,6 +42,15 @@ class BackupJobTable(NetBoxTable):
     description = tables.Column(
         verbose_name=_('Description'),
     )
+    backup_server_name = tables.Column(
+        verbose_name=_('Backup Server'),
+        accessor='backup_server_display',
+        order_by=('backup_server_name',),
+    )
+    backup_server_ip = tables.Column(
+        verbose_name=_('Backup Server IP'),
+        linkify=True,
+    )
     target = tables.Column(
         verbose_name=_('Target'),
     )
@@ -164,6 +173,11 @@ class BackupJobTable(NetBoxTable):
         url = reverse('plugins:netbox_backupjobs:backupjob_virtual_machines', kwargs={'pk': record.pk})
         return format_html('<a href="{}">{}</a>', url, value or 0)
 
+    def render_backup_server_name(self, value, record):
+        if hasattr(value, 'get_absolute_url'):
+            return format_html('<a href="{}">{}</a>', value.get_absolute_url(), value)
+        return value or '—'
+
     def render_RetainDaysToKeepDeletedVmData(self, value, record):
         if record.EnableDeletedVmDataRetention == 'false':
             return format_html('<s>{}</s>', value) if value else '—'
@@ -281,7 +295,7 @@ class BackupJobTable(NetBoxTable):
     class Meta(NetBoxTable.Meta):
         model = BackupJob
         fields = (
-            'pk', 'id', 'name', 'status', 'jobtype', 'platform', 'job_creation_time', 'description', 'target', 'virtual_machines', 'virtual_machine_count',
+            'pk', 'id', 'name', 'status', 'jobtype', 'platform', 'job_creation_time', 'description', 'backup_server_name', 'backup_server_ip', 'target', 'virtual_machines', 'virtual_machine_count',
             'Algorithm', 'EnableDeduplication', 'StorageEncryptionEnabled',
             'RetainDaysToKeep', 'RetainCycles',
             'EnableDeletedVmDataRetention', 'RetainDaysToKeepDeletedVmData',
