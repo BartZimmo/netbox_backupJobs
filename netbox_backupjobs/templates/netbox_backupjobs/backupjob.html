@@ -42,7 +42,23 @@
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Job Creation Time" %}</th>
-            <td>{{ object.job_creation_time|placeholder }}</td>
+            <td>{{ object.job_creation_time|date:"Y-m-d H:i"|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Last Backup End Time" %}</th>
+            <td>{{ object.LastBackupEndTime|date:"Y-m-d H:i"|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Last Backup Result" %}</th>
+            <td>
+              {% if object.LastBackupResult %}
+                <span class="badge text-bg-{{ object.get_LastBackupResult_color }}">
+                  {{ object.get_LastBackupResult_display }}
+                </span>
+              {% else %}
+                {{ ''|placeholder }}
+              {% endif %}
+            </td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Backup Server" %}</th>
@@ -113,13 +129,123 @@
     <div class="col col-md-6">
 
       <div class="card">
+        <h5 class="card-header">{% trans "Schedule Options" %}</h5>
+        <table class="table table-hover attr-table">
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Run Automatically" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_RunAutomatically_color }}">
+                {{ object.get_RunAutomatically_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Daily Enabled" %}</th>
+            <td>{% if object.RunAutomatically == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_ScheduleDailyEnabled_color }}">{{ object.get_ScheduleDailyEnabled_display }}</span>{% if object.RunAutomatically == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Daily Time" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.ScheduleDailyEnabled == 'false' %}<s>{% endif %}{{ object.ScheduleDailyTime|time:"H:i"|placeholder }}{% if object.RunAutomatically == 'false' or object.ScheduleDailyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Daily Kind" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.ScheduleDailyEnabled == 'false' %}<s>{% endif %}{{ object.get_ScheduleDailyKind_display }}{% if object.RunAutomatically == 'false' or object.ScheduleDailyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Daily Days" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.ScheduleDailyEnabled == 'false' or object.ScheduleDailyKind != 'selected days' %}<s>{% endif %}{{ object.get_ScheduleDailyDays_display }}{% if object.RunAutomatically == 'false' or object.ScheduleDailyEnabled == 'false' or object.ScheduleDailyKind != 'selected days' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Enabled" %}</th>
+            <td>{% if object.RunAutomatically == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_ScheduleMonthlyEnabled_color }}">{{ object.get_ScheduleMonthlyEnabled_display }}</span>{% if object.RunAutomatically == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Time" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' %}<s>{% endif %}{{ object.ScheduleMonthlyTime|time:"H:i"|placeholder }}{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Day of Week" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' or object.ScheduleMonthlyDayNumberInMonth == 'this day' %}<s>{% endif %}{{ object.get_ScheduleMonthlyDayOfWeek_display }}{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' or object.ScheduleMonthlyDayNumberInMonth == 'this day' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Day number of Month" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' %}<s>{% endif %}{{ object.get_ScheduleMonthlyDayNumberInMonth_display }}{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Day of Month" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' or object.ScheduleMonthlyDayNumberInMonth != 'this day' %}<s>{% endif %}{{ object.get_ScheduleMonthlyDayOfMonth_display }}{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' or object.ScheduleMonthlyDayNumberInMonth != 'this day' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Months" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' %}<s>{% endif %}{{ object.get_ScheduleMonthlyMonths_display }}{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Periodically Enabled" %}</th>
+            <td>{% if object.RunAutomatically == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_SchedulePeriodicallyEnabled_color }}">{{ object.get_SchedulePeriodicallyEnabled_display }}</span>{% if object.RunAutomatically == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Periodically Every" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.SchedulePeriodicallyEvery|placeholder }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Periodically Unit" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallyUnit_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Hour Offset (min)" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.SchedulePeriodicallyHourOffsetInMin|placeholder }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monday Schema" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallyMondaySchema_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Tuesday Schema" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallyTuesdaySchema_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Wednesday Schema" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallyWednesdaySchema_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Thursday Schema" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallyThursdaySchema_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Friday Schema" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallyFridaySchema_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Saturday Schema" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallySaturdaySchema_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Sunday Schema" %}</th>
+            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallySundaySchema_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "After Job Enabled" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_AfterJobEnabled_color }}">
+                {{ object.get_AfterJobEnabled_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "After Job" %}</th>
+            <td>{% if object.AfterJobEnabled == 'false' %}<s>{% endif %}{{ object.AfterJobName|linkify|placeholder }}{% if object.AfterJobEnabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
         <h5 class="card-header">{% trans "Synthetic Full Backup" %}</h5>
         <table class="table table-hover attr-table">
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Synthetic Full (Incremental)" %}</th>
             <td>
-              <span class="badge text-bg-{{ object.get_TransformFullToSyntethic_color }}">
-                {{ object.get_TransformFullToSyntethic_display }}
+              <span class="badge text-bg-{{ object.get_TransformFullToSynthetic_color }}">
+                {{ object.get_TransformFullToSynthetic_display }}
               </span>
             </td>
           </tr>
@@ -133,23 +259,23 @@
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Kind" %}</th>
-            <td>{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' %}<s>{% endif %}{{ object.get_TransformToSyntethicKind_display }}{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' %}<s>{% endif %}{{ object.get_TransformToSyntheticKind_display }}{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Days of Week" %}</th>
-            <td>{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'monthly' %}<s>{% endif %}{{ object.get_TransformToSyntheticDays_display }}{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'monthly' %}</s>{% endif %}</td>
+            <td>{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'monthly' %}<s>{% endif %}{{ object.get_TransformToSyntheticDays_display }}{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'monthly' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Week of Month" %}</th>
-            <td>{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'daily' %}<s>{% endif %}{{ object.get_SyntheticFullDayNumberInMonth_display }}{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'daily' %}</s>{% endif %}</td>
+            <td>{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'daily' %}<s>{% endif %}{{ object.get_SyntheticFullDayNumberInMonth_display }}{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'daily' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Day of Week (Monthly)" %}</th>
-            <td>{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'daily' %}<s>{% endif %}{{ object.get_SyntheticFullDayOfWeek_display }}{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'daily' %}</s>{% endif %}</td>
+            <td>{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'daily' %}<s>{% endif %}{{ object.get_SyntheticFullDayOfWeek_display }}{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'daily' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Months" %}</th>
-            <td>{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'daily' %}<s>{% endif %}{{ object.get_TransformToSyntethicMonthly_display }}{% if object.TransformFullToSyntethic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntethicKind == 'daily' %}</s>{% endif %}</td>
+            <td>{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'daily' %}<s>{% endif %}{{ object.get_TransformToSyntheticMonthly_display }}{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'daily' %}</s>{% endif %}</td>
           </tr>
         </table>
       </div>

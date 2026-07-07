@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import datetime, time
 from typing import TYPE_CHECKING, Annotated
 
 import strawberry
 import strawberry_django
 from strawberry import ID
-from strawberry_django import DatetimeFilterLookup, StrFilterLookup
+from strawberry_django import DatetimeFilterLookup, StrFilterLookup, TimeFilterLookup
 
 from netbox.graphql.filters import NetBoxModelFilter
 
@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from .enums import (
         BackupJobPlatformEnum,
         BackupJobStatusEnum,
+        BackupJobResultEnum,
         BackupJobAlgorithmEnum,
         BackupJobStorageEncryptionEnabledEnum,
         BackupJobEnableDeduplicationEnum,
@@ -38,6 +39,15 @@ if TYPE_CHECKING:
         BackupJobGFSWeekOfMonthEnum,
         BackupJobGFSYearlyEnabledEnum,
         BackupJobGFSMonthOfYearEnum,
+        BackupJobRunAutomaticallyEnum,
+        BackupJobScheduleDailyEnabledEnum,
+        BackupJobScheduleDailyKindEnum,
+        BackupJobScheduleMonthlyEnabledEnum,
+        BackupJobScheduleMonthlyDayOfWeekEnum,
+        BackupJobPeriodicallyEnabledEnum,
+        BackupJobPeriodicallyUnitEnum,
+        BackupJobAfterJobEnabledEnum,
+        BackupJobScheduleMonthlyDayNumberInMonthEnum,
     )
 
 
@@ -56,6 +66,10 @@ class BackupJobFilter(NetBoxModelFilter):
     )
     description: StrFilterLookup[str] | None = strawberry_django.filter_field()
     job_creation_time: DatetimeFilterLookup[datetime] | None = strawberry_django.filter_field()
+    LastBackupEndTime: DatetimeFilterLookup[datetime] | None = strawberry_django.filter_field()
+    LastBackupResult: Annotated['BackupJobResultEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')] | None = (
+        strawberry_django.filter_field()
+    )
     backup_server_name: StrFilterLookup[str] | None = strawberry_django.filter_field()
     backup_server_ip: Annotated['IPAddressFilter', strawberry.lazy('ipam.graphql.filters')] | None = (
         strawberry_django.filter_field()
@@ -73,21 +87,27 @@ class BackupJobFilter(NetBoxModelFilter):
     StorageEncryptionEnabled: Annotated[
         'BackupJobStorageEncryptionEnabledEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
     ] | None = strawberry_django.filter_field()
-    RetainDaysToKeep: StrFilterLookup[str] | None = strawberry_django.filter_field()
-    RetainCycles: StrFilterLookup[str] | None = strawberry_django.filter_field()
+    RetainDaysToKeep: Annotated['IntegerLookup', strawberry.lazy('netbox.graphql.filter_lookups')] | None = (
+        strawberry_django.filter_field()
+    )
+    RetainCycles: Annotated['IntegerLookup', strawberry.lazy('netbox.graphql.filter_lookups')] | None = (
+        strawberry_django.filter_field()
+    )
     EnableDeletedVmDataRetention: Annotated[
         'BackupJobEnableDeletedVmDataRetentionEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
     ] | None = strawberry_django.filter_field()
-    RetainDaysToKeepDeletedVmData: StrFilterLookup[str] | None = strawberry_django.filter_field()
+    RetainDaysToKeepDeletedVmData: Annotated['IntegerLookup', strawberry.lazy('netbox.graphql.filter_lookups')] | None = (
+        strawberry_django.filter_field()
+    )
 
     # Synthetic full backup settings
-    TransformFullToSyntethic: Annotated[
+    TransformFullToSynthetic: Annotated[
         'BackupJobEnableSyntheticFullForIncrementalEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
     ] | None = strawberry_django.filter_field()
     TransformToSyntheticFull: Annotated[
         'BackupJobEnableSyntheticFullForReverseIncrementalEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
     ] | None = strawberry_django.filter_field()
-    TransformToSyntethicKind: Annotated[
+    TransformToSyntheticKind: Annotated[
         'BackupJobSyntheticFullEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
     ] | None = strawberry_django.filter_field()
     TransformToSyntheticDays: Annotated['StringArrayLookup', strawberry.lazy('netbox.graphql.filter_lookups')] | None = (
@@ -99,7 +119,7 @@ class BackupJobFilter(NetBoxModelFilter):
     SyntheticFullDayOfWeek: Annotated[
         'BackupJobSyntheticFullDaysEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
     ] | None = strawberry_django.filter_field()
-    TransformToSyntethicMonthly: Annotated[
+    TransformToSyntheticMonthly: Annotated[
         'StringArrayLookup', strawberry.lazy('netbox.graphql.filter_lookups')
     ] | None = strawberry_django.filter_field()
 
@@ -156,3 +176,76 @@ class BackupJobFilter(NetBoxModelFilter):
     ] | None = strawberry_django.filter_field()
 
     comments: StrFilterLookup[str] | None = strawberry_django.filter_field()
+
+    # Schedule options
+    RunAutomatically: Annotated[
+        'BackupJobRunAutomaticallyEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
+    ] | None = strawberry_django.filter_field()
+    ScheduleDailyEnabled: Annotated[
+        'BackupJobScheduleDailyEnabledEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
+    ] | None = strawberry_django.filter_field()
+    ScheduleDailyTime: TimeFilterLookup[time] | None = strawberry_django.filter_field()
+    ScheduleDailyKind: Annotated[
+        'BackupJobScheduleDailyKindEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
+    ] | None = strawberry_django.filter_field()
+    ScheduleDailyDays: Annotated['StringArrayLookup', strawberry.lazy('netbox.graphql.filter_lookups')] | None = (
+        strawberry_django.filter_field()
+    )
+    ScheduleMonthlyEnabled: Annotated[
+        'BackupJobScheduleMonthlyEnabledEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
+    ] | None = strawberry_django.filter_field()
+    ScheduleMonthlyTime: TimeFilterLookup[time] | None = strawberry_django.filter_field()
+    ScheduleMonthlyDayNumberInMonth: Annotated[
+        'BackupJobScheduleMonthlyDayNumberInMonthEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
+    ] | None = strawberry_django.filter_field()
+    ScheduleMonthlyDayOfWeek: Annotated[
+        'BackupJobScheduleMonthlyDayOfWeekEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
+    ] | None = strawberry_django.filter_field()
+    # Note: values are '1'-'31' plus 'last'; can't be a GraphQL enum since enum values may not start with a digit.
+    ScheduleMonthlyDayOfMonth: StrFilterLookup[str] | None = strawberry_django.filter_field()
+    ScheduleMonthlyMonths: Annotated['StringArrayLookup', strawberry.lazy('netbox.graphql.filter_lookups')] | None = (
+        strawberry_django.filter_field()
+    )
+    SchedulePeriodicallyEnabled: Annotated[
+        'BackupJobPeriodicallyEnabledEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
+    ] | None = strawberry_django.filter_field()
+    SchedulePeriodicallyEvery: Annotated['IntegerLookup', strawberry.lazy('netbox.graphql.filter_lookups')] | None = (
+        strawberry_django.filter_field()
+    )
+    SchedulePeriodicallyUnit: Annotated[
+        'BackupJobPeriodicallyUnitEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
+    ] | None = strawberry_django.filter_field()
+    SchedulePeriodicallyHourOffsetInMin: Annotated['IntegerLookup', strawberry.lazy('netbox.graphql.filter_lookups')] | None = (
+        strawberry_django.filter_field()
+    )
+    # Note: values are '0'-'23'; can't be a GraphQL enum since enum values may not start with a digit.
+    SchedulePeriodicallyMondaySchema: Annotated[
+        'StringArrayLookup', strawberry.lazy('netbox.graphql.filter_lookups')
+    ] | None = strawberry_django.filter_field()
+    SchedulePeriodicallyTuesdaySchema: Annotated[
+        'StringArrayLookup', strawberry.lazy('netbox.graphql.filter_lookups')
+    ] | None = strawberry_django.filter_field()
+    SchedulePeriodicallyWednesdaySchema: Annotated[
+        'StringArrayLookup', strawberry.lazy('netbox.graphql.filter_lookups')
+    ] | None = strawberry_django.filter_field()
+    SchedulePeriodicallyThursdaySchema: Annotated[
+        'StringArrayLookup', strawberry.lazy('netbox.graphql.filter_lookups')
+    ] | None = strawberry_django.filter_field()
+    SchedulePeriodicallyFridaySchema: Annotated[
+        'StringArrayLookup', strawberry.lazy('netbox.graphql.filter_lookups')
+    ] | None = strawberry_django.filter_field()
+    SchedulePeriodicallySaturdaySchema: Annotated[
+        'StringArrayLookup', strawberry.lazy('netbox.graphql.filter_lookups')
+    ] | None = strawberry_django.filter_field()
+    SchedulePeriodicallySundaySchema: Annotated[
+        'StringArrayLookup', strawberry.lazy('netbox.graphql.filter_lookups')
+    ] | None = strawberry_django.filter_field()
+
+    # After job
+    AfterJobEnabled: Annotated[
+        'BackupJobAfterJobEnabledEnum', strawberry.lazy('netbox_backupjobs.graphql.enums')
+    ] | None = strawberry_django.filter_field()
+    AfterJobName: Annotated['BackupJobFilter', strawberry.lazy('netbox_backupjobs.graphql.filters')] | None = (
+        strawberry_django.filter_field()
+    )
+    AfterJobName_id: ID | None = strawberry_django.filter_field()

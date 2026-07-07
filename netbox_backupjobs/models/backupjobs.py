@@ -1,4 +1,5 @@
 from django.contrib.postgres.fields import ArrayField
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
@@ -10,6 +11,7 @@ from virtualization.models import VirtualMachine
 from netbox_backupjobs.choices import (
     BackupJobPlatformChoices,
     BackupJobStatusChoices,
+    BackupJobResultChoices,
     BackupJobEnableDeduplicationChoices,
     BackupJobStorageEncryptionEnabledChoices,
     BackupJobEnableDeletedVmDataRetentionChoices,
@@ -32,6 +34,19 @@ from netbox_backupjobs.choices import (
     BackupJobGFSWeekOfMonthChoices,
     BackupJobGFSYearlyEnabledChoices,
     BackupJobGFSMonthOfYearChoices,
+    BackupJobRunAutomaticallyChoices,
+    BackupJobScheduleDailyEnabledChoices,
+    BackupJobScheduleDailyKindChoices,
+    BackupJobScheduleDaysChoices,
+    BackupJobScheduleMonthlyEnabledChoices,
+    BackupJobScheduleMonthlyDayOfWeekChoices,
+    BackupJobScheduleMonthChoices,
+    BackupJobPeriodicallyEnabledChoices,
+    BackupJobPeriodicallyUnitChoices,
+    BackupJobAfterJobEnabledChoices,
+    BackupJobScheduleDayOfMonthChoices,
+    BackupJobScheduleMonthlyDayNumberInMonthChoices,
+    BackupJobScheduleHourChoices,
 )
 
 
@@ -84,6 +99,39 @@ def default_synthetic_months():
     ]
 
 
+def default_schedule_daily_days():
+    return [
+        BackupJobScheduleDaysChoices.MONDAY,
+        BackupJobScheduleDaysChoices.TUESDAY,
+        BackupJobScheduleDaysChoices.WEDNESDAY,
+        BackupJobScheduleDaysChoices.THURSDAY,
+        BackupJobScheduleDaysChoices.FRIDAY,
+        BackupJobScheduleDaysChoices.SATURDAY,
+        BackupJobScheduleDaysChoices.SUNDAY,
+    ]
+
+
+def default_schedule_monthly_months():
+    return [
+        BackupJobScheduleMonthChoices.JANUARY,
+        BackupJobScheduleMonthChoices.FEBRUARY,
+        BackupJobScheduleMonthChoices.MARCH,
+        BackupJobScheduleMonthChoices.APRIL,
+        BackupJobScheduleMonthChoices.MAY,
+        BackupJobScheduleMonthChoices.JUNE,
+        BackupJobScheduleMonthChoices.JULY,
+        BackupJobScheduleMonthChoices.AUGUST,
+        BackupJobScheduleMonthChoices.SEPTEMBER,
+        BackupJobScheduleMonthChoices.OCTOBER,
+        BackupJobScheduleMonthChoices.NOVEMBER,
+        BackupJobScheduleMonthChoices.DECEMBER,
+    ]
+
+
+def default_schedule_all_hours():
+    return [str(h) for h in range(24)]
+
+
 class BackupJob(NetBoxModel):
     #
     # fields that identify backup jobs
@@ -128,6 +176,19 @@ class BackupJob(NetBoxModel):
         verbose_name='Job Creation Time',
         help_text='The date and time when the backup job was created in the backup system',
     )
+    LastBackupEndTime = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Last Backup End Time',
+        help_text='The date and time when the last backup job completed in the backup system',
+    )
+    LastBackupResult = models.CharField(
+        max_length=50,
+        choices=BackupJobResultChoices,
+        blank=True,
+        verbose_name='Last Backup Result',
+        help_text='The result of the last backup job',
+    )
     backup_server_name = models.CharField(
         blank=True,
         max_length=255,
@@ -147,6 +208,184 @@ class BackupJob(NetBoxModel):
         max_length=255,
         verbose_name='Target',
         blank=True
+    )
+
+
+    #
+    # Schedule Options
+    #
+    RunAutomatically = models.CharField(
+        max_length=50,
+        choices=BackupJobRunAutomaticallyChoices,
+        default=BackupJobRunAutomaticallyChoices.FALSE,
+        help_text='Whether the job runs automatically according to the schedule below',
+    )
+    ScheduleDailyEnabled = models.CharField(
+        max_length=50,
+        choices=BackupJobScheduleDailyEnabledChoices,
+        default=BackupJobScheduleDailyEnabledChoices.FALSE,
+        verbose_name='Daily Enabled',
+        help_text='Enable the daily schedule for this job',
+    )
+    ScheduleDailyTime = models.TimeField(
+        null=True,
+        blank=True,
+        verbose_name='Daily Time',
+        help_text='The time of day at which the daily schedule runs',
+    )
+    ScheduleDailyKind = models.CharField(
+        max_length=50,
+        choices=BackupJobScheduleDailyKindChoices,
+        default=BackupJobScheduleDailyKindChoices.EVERYDAY,
+        blank=True,
+        verbose_name='Daily Kind',
+        help_text='Which days the daily schedule applies to',
+    )
+    ScheduleDailyDays = ArrayField(
+        base_field=models.CharField(max_length=50, choices=BackupJobScheduleDaysChoices),
+        default=default_schedule_daily_days,
+        blank=True,
+        verbose_name='Daily Days',
+        help_text='The specific days of the week the daily schedule runs, when Daily Kind is Selected Days',
+    )
+    ScheduleMonthlyEnabled = models.CharField(
+        max_length=50,
+        choices=BackupJobScheduleMonthlyEnabledChoices,
+        default=BackupJobScheduleMonthlyEnabledChoices.FALSE,
+        verbose_name='Monthly Enabled',
+        help_text='Enable the monthly schedule for this job',
+    )
+    ScheduleMonthlyTime = models.TimeField(
+        null=True,
+        blank=True,
+        verbose_name='Monthly Time',
+        help_text='The time of day at which the monthly schedule runs',
+    )
+    ScheduleMonthlyDayNumberInMonth = models.CharField(
+        max_length=50,
+        choices=BackupJobScheduleMonthlyDayNumberInMonthChoices,
+        default=BackupJobScheduleMonthlyDayNumberInMonthChoices.FIRST,
+        blank=True,
+        verbose_name='Monthly Day number of Month',
+        help_text='The day of the month the monthly schedule runs',
+    )
+    ScheduleMonthlyDayOfWeek = models.CharField(
+        max_length=50,
+        choices=BackupJobScheduleMonthlyDayOfWeekChoices,
+        default=BackupJobScheduleMonthlyDayOfWeekChoices.SATURDAY,
+        blank=True,
+        verbose_name='Monthly Day of Week',
+        help_text='The day of the week the monthly schedule runs',
+    )
+    ScheduleMonthlyDayOfMonth = models.CharField(
+        max_length=50,
+        choices=BackupJobScheduleDayOfMonthChoices,
+        default='1',
+        blank=True,
+        verbose_name='Monthly Day of Month',
+        help_text='The day of the month the monthly schedule runs',
+    )
+    ScheduleMonthlyMonths = ArrayField(
+        base_field=models.CharField(max_length=50, choices=BackupJobScheduleMonthChoices),
+        default=default_schedule_monthly_months,
+        blank=True,
+        verbose_name='Monthly Months',
+        help_text='The months the monthly schedule runs in',
+    )
+    SchedulePeriodicallyEnabled = models.CharField(
+        max_length=50,
+        choices=BackupJobPeriodicallyEnabledChoices,
+        default=BackupJobPeriodicallyEnabledChoices.FALSE,
+        verbose_name='Periodically Enabled',
+        help_text='Enable the periodic (recurring interval) schedule for this job',
+    )
+    SchedulePeriodicallyEvery = models.PositiveIntegerField(
+        default=1,
+        null=True,
+        blank=True,
+        verbose_name='Periodically Every',
+        help_text='The interval at which the job periodically runs, in units of Periodically Unit',
+    )
+    SchedulePeriodicallyUnit = models.CharField(
+        max_length=50,
+        choices=BackupJobPeriodicallyUnitChoices,
+        default=BackupJobPeriodicallyUnitChoices.HOURS,
+        blank=True,
+        verbose_name='Periodically Unit',
+        help_text='The unit of time used for the periodic schedule interval',
+    )
+    SchedulePeriodicallyHourOffsetInMin = models.PositiveSmallIntegerField(
+        default=0,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(59)],
+        verbose_name='Hour Offset (min)',
+        help_text='Offset in minutes applied to the start of each hour block in the day schemas below (e.g. 15 shifts a block from 10:00-12:00 to 10:15-12:15)',
+    )
+    SchedulePeriodicallyMondaySchema = ArrayField(
+        base_field=models.CharField(max_length=2, choices=BackupJobScheduleHourChoices),
+        default=default_schedule_all_hours,
+        blank=True,
+        verbose_name='Monday Schema',
+        help_text='Hours during which this job is allowed to run on Monday',
+    )
+    SchedulePeriodicallyTuesdaySchema = ArrayField(
+        base_field=models.CharField(max_length=2, choices=BackupJobScheduleHourChoices),
+        default=default_schedule_all_hours,
+        blank=True,
+        verbose_name='Tuesday Schema',
+        help_text='Hours during which this job is allowed to run on Tuesday',
+    )
+    SchedulePeriodicallyWednesdaySchema = ArrayField(
+        base_field=models.CharField(max_length=2, choices=BackupJobScheduleHourChoices),
+        default=default_schedule_all_hours,
+        blank=True,
+        verbose_name='Wednesday Schema',
+        help_text='Hours during which this job is allowed to run on Wednesday',
+    )
+    SchedulePeriodicallyThursdaySchema = ArrayField(
+        base_field=models.CharField(max_length=2, choices=BackupJobScheduleHourChoices),
+        default=default_schedule_all_hours,
+        blank=True,
+        verbose_name='Thursday Schema',
+        help_text='Hours during which this job is allowed to run on Thursday',
+    )
+    SchedulePeriodicallyFridaySchema = ArrayField(
+        base_field=models.CharField(max_length=2, choices=BackupJobScheduleHourChoices),
+        default=default_schedule_all_hours,
+        blank=True,
+        verbose_name='Friday Schema',
+        help_text='Hours during which this job is allowed to run on Friday',
+    )
+    SchedulePeriodicallySaturdaySchema = ArrayField(
+        base_field=models.CharField(max_length=2, choices=BackupJobScheduleHourChoices),
+        default=default_schedule_all_hours,
+        blank=True,
+        verbose_name='Saturday Schema',
+        help_text='Hours during which this job is allowed to run on Saturday',
+    )
+    SchedulePeriodicallySundaySchema = ArrayField(
+        base_field=models.CharField(max_length=2, choices=BackupJobScheduleHourChoices),
+        default=default_schedule_all_hours,
+        blank=True,
+        verbose_name='Sunday Schema',
+        help_text='Hours during which this job is allowed to run on Sunday',
+    )
+    AfterJobEnabled = models.CharField(
+        max_length=50,
+        choices=BackupJobAfterJobEnabledChoices,
+        default=BackupJobAfterJobEnabledChoices.FALSE,
+        verbose_name='After Job Enabled',
+        help_text='Enable the after job schedule for this job',
+    )
+    AfterJobName = models.ForeignKey(
+        to='self',
+        on_delete=models.SET_NULL,
+        related_name='preceding_jobs',
+        null=True,
+        blank=True,
+        verbose_name='After Job',
+        help_text='Veeam will wait for the selected job before starting this job',
     )
 
     #
@@ -170,14 +409,18 @@ class BackupJob(NetBoxModel):
         default=BackupJobStorageEncryptionEnabledChoices.FALSE,
         help_text='Enable storage encryption for this backup job',
     )
-    RetainDaysToKeep = models.CharField(
-        max_length=50,
+    RetainDaysToKeep = models.PositiveIntegerField(
+        default=1,
+        null=True,
         blank=True,
+        validators=[MinValueValidator(1)],
         help_text='The minimum number of days to retain backups for this job',
     )
-    RetainCycles = models.CharField(
-        max_length=50,
+    RetainCycles = models.PositiveIntegerField(
+        default=1,
+        null=True,
         blank=True,
+        validators=[MinValueValidator(1)],
         help_text='The number of backup cycles veeam will retain for this job, this is auto calculated and also depends on synthetic full and active full backup settings',
     )
     EnableDeletedVmDataRetention = models.CharField(
@@ -186,15 +429,17 @@ class BackupJob(NetBoxModel):
         default=BackupJobEnableDeletedVmDataRetentionChoices.FALSE,
         help_text='Enable retention of deleted VM data for this backup job',
     )
-    RetainDaysToKeepDeletedVmData = models.CharField(
-        max_length=50,
+    RetainDaysToKeepDeletedVmData = models.PositiveIntegerField(
+        default=1,
+        null=True,
         blank=True,
+        validators=[MinValueValidator(1)],
         help_text='The number of days to retain deleted VM data for this backup job',
     )
     #
     # Synthetic Full Backup Settings
     #
-    TransformFullToSyntethic = models.CharField(
+    TransformFullToSynthetic = models.CharField(
         max_length=50,
         choices=BackupJobEnableSyntheticFullForIncrementalChoices,
         default=BackupJobEnableSyntheticFullForIncrementalChoices.FALSE,
@@ -206,7 +451,7 @@ class BackupJob(NetBoxModel):
         default=BackupJobEnableSyntheticFullForReverseIncrementalChoices.FALSE,
         help_text='Enable synthetic full backup for backup jobs that use reverse incremental backup algorithm',
     )
-    TransformToSyntethicKind = models.CharField(
+    TransformToSyntheticKind = models.CharField(
         max_length=50,
         choices=BackupJobSyntheticFullChoices,
         default=BackupJobSyntheticFullChoices.SYNTHETIC_FULL_DAILY,
@@ -230,7 +475,7 @@ class BackupJob(NetBoxModel):
         default=BackupJobSyntheticFullDaysChoices.SUNDAY,
         help_text='The day of the week to create synthetic full backups for this job',
     )
-    TransformToSyntethicMonthly = ArrayField(
+    TransformToSyntheticMonthly = ArrayField(
         base_field=models.CharField(max_length=50, choices=BackupJobSyntheticFullMonthChoices),
         default=default_synthetic_months,
         blank=True,
@@ -340,6 +585,7 @@ class BackupJob(NetBoxModel):
     )
 
 
+
     comments = models.TextField(
         blank=True,
         help_text='Additional comments about the backup job',
@@ -353,9 +599,9 @@ class BackupJob(NetBoxModel):
         'Algorithm', 'EnableDeduplication', 'StorageEncryptionEnabled',
         'RetainDaysToKeep', 'RetainCycles',
         'EnableDeletedVmDataRetention', 'RetainDaysToKeepDeletedVmData',
-        'TransformFullToSyntethic', 'TransformToSyntheticFull', 'TransformToSyntethicKind',
+        'TransformFullToSynthetic', 'TransformToSyntheticFull', 'TransformToSyntheticKind',
         'TransformToSyntheticDays', 'SyntheticFullDayNumberInMonth', 'SyntheticFullDayOfWeek',
-        'TransformToSyntethicMonthly',
+        'TransformToSyntheticMonthly',
         'EnableFullBackup', 'FullBackupScheduleKind',
         'FullBackupDays', 'FullBackupDayNumberInMonth', 'FullBackupDayOfWeek', 'FullBackupMonths',
         'EnableGFS',
@@ -400,6 +646,9 @@ class BackupJob(NetBoxModel):
     def get_status_color(self):
         return BackupJobStatusChoices.colors.get(self.status)
 
+    def get_LastBackupResult_color(self):
+        return BackupJobResultChoices.colors.get(self.LastBackupResult)
+
     def get_EnableDeduplication_color(self):
         return BackupJobEnableDeduplicationChoices.colors.get(self.EnableDeduplication)
 
@@ -409,8 +658,8 @@ class BackupJob(NetBoxModel):
     def get_EnableDeletedVmDataRetention_color(self):
         return BackupJobEnableDeletedVmDataRetentionChoices.colors.get(self.EnableDeletedVmDataRetention)
 
-    def get_TransformFullToSyntethic_color(self):
-        return BackupJobEnableSyntheticFullForIncrementalChoices.colors.get(self.TransformFullToSyntethic)
+    def get_TransformFullToSynthetic_color(self):
+        return BackupJobEnableSyntheticFullForIncrementalChoices.colors.get(self.TransformFullToSynthetic)
 
     def get_TransformToSyntheticFull_color(self):
         return BackupJobEnableSyntheticFullForReverseIncrementalChoices.colors.get(self.TransformToSyntheticFull)
@@ -442,8 +691,74 @@ class BackupJob(NetBoxModel):
         labels = {c[0]: str(c[1]) for c in BackupJobSyntheticFullDaysChoices.CHOICES}
         return ', '.join(labels.get(v, v) for v in self.TransformToSyntheticDays) if self.TransformToSyntheticDays else '—'
 
-    def get_TransformToSyntethicMonthly_display(self):
+    def get_TransformToSyntheticMonthly_display(self):
         labels = {c[0]: str(c[1]) for c in BackupJobSyntheticFullMonthChoices.CHOICES}
-        return ', '.join(labels.get(v, v) for v in self.TransformToSyntethicMonthly) if self.TransformToSyntethicMonthly else '—'
+        return ', '.join(labels.get(v, v) for v in self.TransformToSyntheticMonthly) if self.TransformToSyntheticMonthly else '—'
 
-    
+    def get_RunAutomatically_color(self):
+        return BackupJobRunAutomaticallyChoices.colors.get(self.RunAutomatically)
+
+    def get_ScheduleDailyEnabled_color(self):
+        return BackupJobScheduleDailyEnabledChoices.colors.get(self.ScheduleDailyEnabled)
+
+    def get_ScheduleDailyDays_display(self):
+        labels = {c[0]: str(c[1]) for c in BackupJobScheduleDaysChoices.CHOICES}
+        return ', '.join(labels.get(v, v) for v in self.ScheduleDailyDays) if self.ScheduleDailyDays else '—'
+
+    def get_ScheduleMonthlyEnabled_color(self):
+        return BackupJobScheduleMonthlyEnabledChoices.colors.get(self.ScheduleMonthlyEnabled)
+
+    def get_ScheduleMonthlyMonths_display(self):
+        labels = {c[0]: str(c[1]) for c in BackupJobScheduleMonthChoices.CHOICES}
+        return ', '.join(labels.get(v, v) for v in self.ScheduleMonthlyMonths) if self.ScheduleMonthlyMonths else '—'
+
+    def get_SchedulePeriodicallyEnabled_color(self):
+        return BackupJobPeriodicallyEnabledChoices.colors.get(self.SchedulePeriodicallyEnabled)
+
+    def _schedule_hour_schema_display(self, hours):
+        if len(hours) == 24:
+            return 'All Hours'
+        if not hours:
+            return 'No Hours'
+        offset = self.SchedulePeriodicallyHourOffsetInMin or 0
+        ordered = sorted(int(h) for h in hours)
+        ranges = []
+        start = prev = ordered[0]
+        for h in ordered[1:]:
+            if h == prev + 1:
+                prev = h
+                continue
+            ranges.append((start, prev))
+            start = prev = h
+        ranges.append((start, prev))
+
+        def label(hour):
+            return f'{hour % 24:02d}:{offset:02d}'
+
+        parts = [f'{label(start)}-{label(end + 1)}' for start, end in ranges]
+        return ', '.join(parts)
+
+    def get_SchedulePeriodicallyMondaySchema_display(self):
+        return self._schedule_hour_schema_display(self.SchedulePeriodicallyMondaySchema)
+
+    def get_SchedulePeriodicallyTuesdaySchema_display(self):
+        return self._schedule_hour_schema_display(self.SchedulePeriodicallyTuesdaySchema)
+
+    def get_SchedulePeriodicallyWednesdaySchema_display(self):
+        return self._schedule_hour_schema_display(self.SchedulePeriodicallyWednesdaySchema)
+
+    def get_SchedulePeriodicallyThursdaySchema_display(self):
+        return self._schedule_hour_schema_display(self.SchedulePeriodicallyThursdaySchema)
+
+    def get_SchedulePeriodicallyFridaySchema_display(self):
+        return self._schedule_hour_schema_display(self.SchedulePeriodicallyFridaySchema)
+
+    def get_SchedulePeriodicallySaturdaySchema_display(self):
+        return self._schedule_hour_schema_display(self.SchedulePeriodicallySaturdaySchema)
+
+    def get_SchedulePeriodicallySundaySchema_display(self):
+        return self._schedule_hour_schema_display(self.SchedulePeriodicallySundaySchema)
+
+    def get_AfterJobEnabled_color(self):
+        return BackupJobAfterJobEnabledChoices.colors.get(self.AfterJobEnabled)
+

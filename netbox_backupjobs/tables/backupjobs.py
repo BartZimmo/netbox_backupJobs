@@ -7,12 +7,6 @@ from netbox.tables import NetBoxTable, columns
 from utilities.tables import register_table_column
 from virtualization.tables import VirtualMachineTable
 from netbox_backupjobs.models import BackupJob
-from netbox_backupjobs.choices import (
-    BackupJobSyntheticFullDaysChoices,
-    BackupJobSyntheticFullMonthChoices,
-    BackupJobFullBackupDaysChoices,
-    BackupJobFullBackupMonthChoices,
-)
 
 __all__ = (
     'BackupJobTable',
@@ -38,6 +32,14 @@ class BackupJobTable(NetBoxTable):
     )
     job_creation_time = tables.DateTimeColumn(
         verbose_name=_('Job Creation Time'),
+        format='Y-m-d H:i',
+    )
+    LastBackupEndTime = tables.DateTimeColumn(
+        verbose_name=_('Last Backup End Time'),
+        format='Y-m-d H:i',
+    )
+    LastBackupResult = columns.ChoiceFieldColumn(
+        verbose_name=_('Last Backup Result'),
     )
     description = tables.Column(
         verbose_name=_('Description'),
@@ -88,13 +90,13 @@ class BackupJobTable(NetBoxTable):
     )
 
     # Synthetic full backup settings
-    TransformFullToSyntethic = columns.ChoiceFieldColumn(
+    TransformFullToSynthetic = columns.ChoiceFieldColumn(
         verbose_name=_('Synthetic Full (Incremental)'),
     )
     TransformToSyntheticFull = columns.ChoiceFieldColumn(
         verbose_name=_('Synthetic Full (Reverse Incr.)'),
     )
-    TransformToSyntethicKind = tables.Column(
+    TransformToSyntheticKind = tables.Column(
         verbose_name=_('Synthetic Full Kind'),
     )
     TransformToSyntheticDays = tables.Column(
@@ -106,7 +108,7 @@ class BackupJobTable(NetBoxTable):
     SyntheticFullDayOfWeek = tables.Column(
         verbose_name=_('Synthetic Full Weekday'),
     )
-    TransformToSyntethicMonthly = tables.Column(
+    TransformToSyntheticMonthly = tables.Column(
         verbose_name=_('Synthetic Full Months'),
     )
 
@@ -162,6 +164,82 @@ class BackupJobTable(NetBoxTable):
         verbose_name=_('GFS Yearly Month'),
     )
 
+    # Schedule options
+    RunAutomatically = columns.ChoiceFieldColumn(
+        verbose_name=_('Run Automatically'),
+    )
+    ScheduleDailyEnabled = columns.ChoiceFieldColumn(
+        verbose_name=_('Daily Enabled'),
+    )
+    ScheduleDailyTime = tables.TimeColumn(
+        verbose_name=_('Daily Time'),
+        format='H:i',
+    )
+    ScheduleDailyKind = tables.Column(
+        verbose_name=_('Daily Kind'),
+    )
+    ScheduleDailyDays = tables.Column(
+        verbose_name=_('Daily Days'),
+    )
+    ScheduleMonthlyEnabled = columns.ChoiceFieldColumn(
+        verbose_name=_('Monthly Enabled'),
+    )
+    ScheduleMonthlyTime = tables.TimeColumn(
+        verbose_name=_('Monthly Time'),
+        format='H:i',
+    )
+    ScheduleMonthlyDayOfWeek = tables.Column(
+        verbose_name=_('Monthly Day of Week'),
+    )
+    ScheduleMonthlyDayNumberInMonth = tables.Column(
+        verbose_name=_('Monthly Day number of Month'),
+    )
+    ScheduleMonthlyDayOfMonth = tables.Column(
+        verbose_name=_('Monthly Day of Month'),
+    )
+    ScheduleMonthlyMonths = tables.Column(
+        verbose_name=_('Monthly Months'),
+    )
+    SchedulePeriodicallyEnabled = columns.ChoiceFieldColumn(
+        verbose_name=_('Periodically Enabled'),
+    )
+    SchedulePeriodicallyEvery = tables.Column(
+        verbose_name=_('Periodically Every'),
+    )
+    SchedulePeriodicallyUnit = tables.Column(
+        verbose_name=_('Periodically Unit'),
+    )
+    SchedulePeriodicallyHourOffsetInMin = tables.Column(
+        verbose_name=_('Hour Offset (min)'),
+    )
+    SchedulePeriodicallyMondaySchema = tables.Column(
+        verbose_name=_('Monday Schema'),
+    )
+    SchedulePeriodicallyTuesdaySchema = tables.Column(
+        verbose_name=_('Tuesday Schema'),
+    )
+    SchedulePeriodicallyWednesdaySchema = tables.Column(
+        verbose_name=_('Wednesday Schema'),
+    )
+    SchedulePeriodicallyThursdaySchema = tables.Column(
+        verbose_name=_('Thursday Schema'),
+    )
+    SchedulePeriodicallyFridaySchema = tables.Column(
+        verbose_name=_('Friday Schema'),
+    )
+    SchedulePeriodicallySaturdaySchema = tables.Column(
+        verbose_name=_('Saturday Schema'),
+    )
+    SchedulePeriodicallySundaySchema = tables.Column(
+        verbose_name=_('Sunday Schema'),
+    )
+    AfterJobEnabled = columns.ChoiceFieldColumn(
+        verbose_name=_('After Job Enabled'),
+    )
+    AfterJobName = tables.Column(
+        verbose_name=_('After Job Name'),
+    )
+
     comments = tables.Column(
         verbose_name=_('Comments'),
     )
@@ -184,37 +262,35 @@ class BackupJobTable(NetBoxTable):
         return value or '—'
 
     def _both_disabled(self, record):
-        return record.TransformFullToSyntethic == 'false' and record.TransformToSyntheticFull == 'false'
+        return record.TransformFullToSynthetic == 'false' and record.TransformToSyntheticFull == 'false'
 
-    def render_TransformToSyntethicKind(self, value, record):
-        text = record.get_TransformToSyntethicKind_display()
+    def render_TransformToSyntheticKind(self, value, record):
+        text = record.get_TransformToSyntheticKind_display()
         if self._both_disabled(record):
             return format_html('<s>{}</s>', text)
         return text
 
     def render_TransformToSyntheticDays(self, value, record):
-        labels = {c[0]: c[1] for c in BackupJobSyntheticFullDaysChoices.CHOICES}
-        text = ', '.join(str(labels.get(v, v)) for v in value) if value else '—'
-        if self._both_disabled(record) or record.TransformToSyntethicKind == 'monthly':
+        text = record.get_TransformToSyntheticDays_display()
+        if self._both_disabled(record) or record.TransformToSyntheticKind == 'monthly':
             return format_html('<s>{}</s>', text)
         return text
 
     def render_SyntheticFullDayNumberInMonth(self, value, record):
         text = record.get_SyntheticFullDayNumberInMonth_display()
-        if self._both_disabled(record) or record.TransformToSyntethicKind == 'daily':
+        if self._both_disabled(record) or record.TransformToSyntheticKind == 'daily':
             return format_html('<s>{}</s>', text)
         return text
 
     def render_SyntheticFullDayOfWeek(self, value, record):
         text = record.get_SyntheticFullDayOfWeek_display()
-        if self._both_disabled(record) or record.TransformToSyntethicKind == 'daily':
+        if self._both_disabled(record) or record.TransformToSyntheticKind == 'daily':
             return format_html('<s>{}</s>', text)
         return text
 
-    def render_TransformToSyntethicMonthly(self, value, record):
-        labels = {c[0]: c[1] for c in BackupJobSyntheticFullMonthChoices.CHOICES}
-        text = ', '.join(str(labels.get(v, v)) for v in value) if value else '—'
-        if self._both_disabled(record) or record.TransformToSyntethicKind == 'daily':
+    def render_TransformToSyntheticMonthly(self, value, record):
+        text = record.get_TransformToSyntheticMonthly_display()
+        if self._both_disabled(record) or record.TransformToSyntheticKind == 'daily':
             return format_html('<s>{}</s>', text)
         return text
 
@@ -228,8 +304,7 @@ class BackupJobTable(NetBoxTable):
         return text
 
     def render_FullBackupDays(self, value, record):
-        labels = {c[0]: c[1] for c in BackupJobFullBackupDaysChoices.CHOICES}
-        text = ', '.join(str(labels.get(v, v)) for v in value) if value else '—'
+        text = record.get_FullBackupDays_display()
         if self._full_backup_disabled(record) or record.FullBackupScheduleKind == 'monthly':
             return format_html('<s>{}</s>', text)
         return text
@@ -247,8 +322,7 @@ class BackupJobTable(NetBoxTable):
         return text
 
     def render_FullBackupMonths(self, value, record):
-        labels = {c[0]: c[1] for c in BackupJobFullBackupMonthChoices.CHOICES}
-        text = ', '.join(str(labels.get(v, v)) for v in value) if value else '—'
+        text = record.get_FullBackupMonths_display()
         if self._full_backup_disabled(record) or record.FullBackupScheduleKind == 'daily':
             return format_html('<s>{}</s>', text)
         return text
@@ -292,17 +366,148 @@ class BackupJobTable(NetBoxTable):
             return format_html('<s>{}</s>', text)
         return text
 
+    def _run_automatically_disabled(self, record):
+        return record.RunAutomatically == 'false'
+
+    def render_ScheduleDailyTime(self, value, record):
+        if self._run_automatically_disabled(record) or record.ScheduleDailyEnabled == 'false':
+            return format_html('<s>{}</s>', value) if value else '—'
+        return value or '—'
+
+    def render_ScheduleDailyKind(self, value, record):
+        text = record.get_ScheduleDailyKind_display()
+        if self._run_automatically_disabled(record) or record.ScheduleDailyEnabled == 'false':
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_ScheduleDailyDays(self, value, record):
+        text = record.get_ScheduleDailyDays_display()
+        if (
+            self._run_automatically_disabled(record)
+            or record.ScheduleDailyEnabled == 'false'
+            or record.ScheduleDailyKind != 'selected days'
+        ):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_ScheduleMonthlyTime(self, value, record):
+        if self._run_automatically_disabled(record) or record.ScheduleMonthlyEnabled == 'false':
+            return format_html('<s>{}</s>', value) if value else '—'
+        return value or '—'
+
+    def render_ScheduleMonthlyDayNumberInMonth(self, value, record):
+        text = record.get_ScheduleMonthlyDayNumberInMonth_display()
+        if self._run_automatically_disabled(record) or record.ScheduleMonthlyEnabled == 'false':
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_ScheduleMonthlyDayOfWeek(self, value, record):
+        text = record.get_ScheduleMonthlyDayOfWeek_display()
+        if (
+            self._run_automatically_disabled(record)
+            or record.ScheduleMonthlyEnabled == 'false'
+            or record.ScheduleMonthlyDayNumberInMonth == 'this day'
+        ):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_ScheduleMonthlyDayOfMonth(self, value, record):
+        text = record.get_ScheduleMonthlyDayOfMonth_display()
+        if (
+            self._run_automatically_disabled(record)
+            or record.ScheduleMonthlyEnabled == 'false'
+            or record.ScheduleMonthlyDayNumberInMonth != 'this day'
+        ):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_ScheduleMonthlyMonths(self, value, record):
+        text = record.get_ScheduleMonthlyMonths_display()
+        if self._run_automatically_disabled(record) or record.ScheduleMonthlyEnabled == 'false':
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def _periodically_disabled(self, record):
+        return self._run_automatically_disabled(record) or record.SchedulePeriodicallyEnabled == 'false'
+
+    def render_SchedulePeriodicallyEvery(self, value, record):
+        text = str(value) if value is not None else '—'
+        if self._periodically_disabled(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_SchedulePeriodicallyUnit(self, value, record):
+        text = record.get_SchedulePeriodicallyUnit_display()
+        if self._periodically_disabled(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_SchedulePeriodicallyHourOffsetInMin(self, value, record):
+        text = str(value) if value is not None else '—'
+        if self._periodically_disabled(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_SchedulePeriodicallyMondaySchema(self, value, record):
+        text = record.get_SchedulePeriodicallyMondaySchema_display()
+        if self._periodically_disabled(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_SchedulePeriodicallyTuesdaySchema(self, value, record):
+        text = record.get_SchedulePeriodicallyTuesdaySchema_display()
+        if self._periodically_disabled(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_SchedulePeriodicallyWednesdaySchema(self, value, record):
+        text = record.get_SchedulePeriodicallyWednesdaySchema_display()
+        if self._periodically_disabled(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_SchedulePeriodicallyThursdaySchema(self, value, record):
+        text = record.get_SchedulePeriodicallyThursdaySchema_display()
+        if self._periodically_disabled(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_SchedulePeriodicallyFridaySchema(self, value, record):
+        text = record.get_SchedulePeriodicallyFridaySchema_display()
+        if self._periodically_disabled(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_SchedulePeriodicallySaturdaySchema(self, value, record):
+        text = record.get_SchedulePeriodicallySaturdaySchema_display()
+        if self._periodically_disabled(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_SchedulePeriodicallySundaySchema(self, value, record):
+        text = record.get_SchedulePeriodicallySundaySchema_display()
+        if self._periodically_disabled(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_AfterJobName(self, value, record):
+        if not value:
+            return '—'
+        if record.AfterJobEnabled == 'false':
+            return format_html('<s>{}</s>', value)
+        return format_html('<a href="{}">{}</a>', value.get_absolute_url(), value)
+
     class Meta(NetBoxTable.Meta):
         model = BackupJob
         fields = (
-            'pk', 'id', 'name', 'status', 'jobtype', 'platform', 'job_creation_time', 'description', 'backup_server_name', 'backup_server_ip', 'target', 'virtual_machines', 'virtual_machine_count',
+            'pk', 'id', 'name', 'status', 'jobtype', 'platform', 'job_creation_time', 'LastBackupEndTime', 'LastBackupResult', 'description', 'backup_server_name', 'backup_server_ip', 'target', 'virtual_machines', 'virtual_machine_count',
             'Algorithm', 'EnableDeduplication', 'StorageEncryptionEnabled',
             'RetainDaysToKeep', 'RetainCycles',
             'EnableDeletedVmDataRetention', 'RetainDaysToKeepDeletedVmData',
-            'TransformFullToSyntethic', 'TransformToSyntheticFull',
-            'TransformToSyntethicKind', 'TransformToSyntheticDays',
+            'TransformFullToSynthetic', 'TransformToSyntheticFull',
+            'TransformToSyntheticKind', 'TransformToSyntheticDays',
             'SyntheticFullDayNumberInMonth', 'SyntheticFullDayOfWeek',
-            'TransformToSyntethicMonthly',
+            'TransformToSyntheticMonthly',
             'EnableFullBackup', 'FullBackupScheduleKind',
             'FullBackupDays', 'FullBackupDayNumberInMonth', 'FullBackupDayOfWeek',
             'FullBackupMonths',
@@ -310,10 +515,21 @@ class BackupJobTable(NetBoxTable):
             'WeeklyEnabled', 'WeeklyKeepBackupsFor', 'WeeklyKeepBackupsOnDayOfWeek',
             'MonthlyEnabled', 'MonthlyKeepBackupsFor', 'MonthlyKeepBackupsWeekOfMonth',
             'YearlyEnabled', 'YearlyKeepBackupsFor', 'YearlyKeepBackupsOnMonthOfYear',
+            'RunAutomatically',
+            'ScheduleDailyEnabled', 'ScheduleDailyTime', 'ScheduleDailyKind', 'ScheduleDailyDays',
+            'ScheduleMonthlyEnabled', 'ScheduleMonthlyTime', 'ScheduleMonthlyDayOfWeek',
+            'ScheduleMonthlyDayNumberInMonth', 'ScheduleMonthlyDayOfMonth', 'ScheduleMonthlyMonths',
+            'SchedulePeriodicallyEnabled', 'SchedulePeriodicallyEvery', 'SchedulePeriodicallyUnit',
+            'SchedulePeriodicallyHourOffsetInMin',
+            'SchedulePeriodicallyMondaySchema', 'SchedulePeriodicallyTuesdaySchema',
+            'SchedulePeriodicallyWednesdaySchema', 'SchedulePeriodicallyThursdaySchema',
+            'SchedulePeriodicallyFridaySchema', 'SchedulePeriodicallySaturdaySchema',
+            'SchedulePeriodicallySundaySchema',
+            'AfterJobEnabled', 'AfterJobName',
             'comments', 'tags', 'created', 'last_updated', 'actions',
         )
         default_columns = (
-            'pk', 'name', 'status', 'jobtype', 'platform', 'description', 'virtual_machines', 'virtual_machine_count',
+            'pk', 'name', 'status', 'jobtype', 'platform', 'LastBackupResult', 'description', 'virtual_machines', 'virtual_machine_count',
         )
 
 

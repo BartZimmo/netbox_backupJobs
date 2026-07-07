@@ -24,11 +24,24 @@ class BackupJobStatusChoices(ChoiceSet):
 
     STATUS_ENABLED = 'enabled'
     STATUS_DISABLED = 'disabled'
-    
+
 
     CHOICES = [
         (STATUS_ENABLED, _('Enabled'), 'green'),
-        (STATUS_DISABLED, _('Disabled'), 'blue'),        
+        (STATUS_DISABLED, _('Disabled'), 'blue'),
+    ]
+
+class BackupJobResultChoices(ChoiceSet):
+    key = 'BackupJob.last_backup_result'
+
+    SUCCESS = 'success'
+    WARNING = 'warning'
+    FAILED = 'failed'
+
+    CHOICES = [
+        (SUCCESS, _('Success'), 'green'),
+        (WARNING, _('Warning'), 'yellow'),
+        (FAILED, _('Failed'), 'red'),
     ]
 
 class BackupJobAlgorithmChoices(ChoiceSet):
@@ -393,3 +406,207 @@ class BackupJobGFSMonthOfYearChoices(ChoiceSet):
         (NOVEMBER, _('November')),
         (DECEMBER, _('December')),
     ]
+
+
+#
+# BackupJob Schedule Options
+#
+
+class BackupJobRunAutomaticallyChoices(ChoiceSet):
+    key = 'BackupJob.run_automatically'
+
+    TRUE = 'true'
+    FALSE = 'false'
+
+    CHOICES = [
+        (TRUE, _('Enabled'), 'green'),
+        (FALSE, _('Disabled'), 'red'),
+    ]
+
+#--- Daily Schedule Options ---#
+
+class BackupJobScheduleDailyEnabledChoices(ChoiceSet):
+    key = 'BackupJob.schedule_daily_enabled'
+
+    TRUE = 'true'
+    FALSE = 'false'
+
+    CHOICES = [
+        (TRUE, _('Enabled'), 'green'),
+        (FALSE, _('Disabled'), 'red'),
+    ]
+
+
+class BackupJobScheduleDailyKindChoices(ChoiceSet):
+    key = 'BackupJob.schedule_daily_kind'
+
+    EVERYDAY = 'everyday'
+    WEEKDAYS = 'weekdays'
+    SELECTED_DAYS = 'selected days'
+
+    CHOICES = [
+        (EVERYDAY, _('Everyday')),
+        (WEEKDAYS, _('Weekdays')),
+        (SELECTED_DAYS, _('Selected Days')),
+    ]
+
+
+class BackupJobScheduleDaysChoices(ChoiceSet):
+    key = 'BackupJob.schedule_days'
+
+    MONDAY = 'monday'
+    TUESDAY = 'tuesday'
+    WEDNESDAY = 'wednesday'
+    THURSDAY = 'thursday'
+    FRIDAY = 'friday'
+    SATURDAY = 'saturday'
+    SUNDAY = 'sunday'
+
+    CHOICES = [
+        (MONDAY, _('Monday'), 'green'),
+        (TUESDAY, _('Tuesday'), 'blue'),
+        (WEDNESDAY, _('Wednesday'), 'orange'),
+        (THURSDAY, _('Thursday'), 'purple'),
+        (FRIDAY, _('Friday'), 'red'),
+        (SATURDAY, _('Saturday'), 'yellow'),
+        (SUNDAY, _('Sunday'), 'gray'),
+    ]
+
+#--- Monthly Schedule Options ---#
+
+class BackupJobScheduleMonthlyEnabledChoices(ChoiceSet):
+    key = 'BackupJob.schedule_monthly_enabled'
+
+    TRUE = 'true'
+    FALSE = 'false'
+
+    CHOICES = [
+        (TRUE, _('Enabled'), 'green'),
+        (FALSE, _('Disabled'), 'red'),
+    ]
+
+class BackupJobScheduleMonthlyDayNumberInMonthChoices(ChoiceSet):
+    key = 'BackupJob.schedule_monthly_day_number_in_month'
+
+    FIRST = 'first'
+    SECOND = 'second'
+    THIRD = 'third'
+    FOURTH = 'fourth'
+    LAST = 'last'
+    THIS_DAY = 'this day'
+
+    CHOICES = [
+        (FIRST, _('First'), 'green'),
+        (SECOND, _('Second'), 'blue'),
+        (THIRD, _('Third'), 'orange'),
+        (FOURTH, _('Fourth'), 'purple'),
+        (LAST, _('Last'), 'red'),
+        (THIS_DAY, _('This Day'), 'gray'),
+    ]
+
+class BackupJobScheduleMonthlyDayOfWeekChoices(ChoiceSet):
+    key = 'BackupJob.schedule_monthly_day_of_week'
+
+    MONDAY = 'monday'
+    TUESDAY = 'tuesday'
+    WEDNESDAY = 'wednesday'
+    THURSDAY = 'thursday'
+    FRIDAY = 'friday'
+    SATURDAY = 'saturday'
+    SUNDAY = 'sunday'
+
+    CHOICES = [
+        (MONDAY, _('Monday'), 'green'),
+        (TUESDAY, _('Tuesday'), 'blue'),
+        (WEDNESDAY, _('Wednesday'), 'orange'),
+        (THURSDAY, _('Thursday'), 'purple'),
+        (FRIDAY, _('Friday'), 'red'),
+        (SATURDAY, _('Saturday'), 'yellow'),
+        (SUNDAY, _('Sunday'), 'gray'),
+    ]
+
+class BackupJobScheduleDayOfMonthChoices(ChoiceSet):
+    key = 'BackupJob.schedule_day_of_month'
+
+    LAST = 'last'
+
+    CHOICES = [
+        (LAST, _('Last'), 'yellow'),
+        *[(str(i), str(i)) for i in range(1, 32)],  # Choices from 1 to 31
+    ]
+
+
+class BackupJobScheduleMonthChoices(ChoiceSet):
+    key = 'BackupJob.schedule_month'
+
+    JANUARY = 'january'
+    FEBRUARY = 'february'
+    MARCH = 'march'
+    APRIL = 'april'
+    MAY = 'may'
+    JUNE = 'june'
+    JULY = 'july'
+    AUGUST = 'august'
+    SEPTEMBER = 'september'
+    OCTOBER = 'october'
+    NOVEMBER = 'november'
+    DECEMBER = 'december'
+
+    CHOICES = [
+        (JANUARY, _('January')),
+        (FEBRUARY, _('February')),
+        (MARCH, _('March')),
+        (APRIL, _('April')),
+        (MAY, _('May')),
+        (JUNE, _('June')),
+        (JULY, _('July')),
+        (AUGUST, _('August')),
+        (SEPTEMBER, _('September')),
+        (OCTOBER, _('October')),
+        (NOVEMBER, _('November')),
+        (DECEMBER, _('December')),
+    ]
+
+
+class BackupJobPeriodicallyEnabledChoices(ChoiceSet):
+    key = 'BackupJob.periodically_enabled'
+
+    TRUE = 'true'
+    FALSE = 'false'
+
+    CHOICES = [
+        (TRUE, _('Enabled'), 'green'),
+        (FALSE, _('Disabled'), 'red'),
+    ]
+
+
+class BackupJobPeriodicallyUnitChoices(ChoiceSet):
+    key = 'BackupJob.periodically_unit'
+
+    MINUTES = 'minutes'
+    HOURS = 'hours'
+    CONTINUOUSLY = 'continuously'
+
+    CHOICES = [
+        (MINUTES, _('Minutes')),
+        (HOURS, _('Hours')),
+        (CONTINUOUSLY, _('Continuously')),
+    ]
+
+
+class BackupJobAfterJobEnabledChoices(ChoiceSet):
+    key = 'BackupJob.after_job_enabled'
+
+    TRUE = 'true'
+    FALSE = 'false'
+
+    CHOICES = [
+        (TRUE, _('Enabled'), 'green'),
+        (FALSE, _('Disabled'), 'red'),
+    ]
+
+
+class BackupJobScheduleHourChoices(ChoiceSet):
+    key = 'BackupJob.schedule_hour'
+
+    CHOICES = [(str(h), f'{h:02d}:00') for h in range(24)]

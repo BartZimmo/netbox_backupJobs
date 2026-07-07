@@ -28,5 +28,5 @@ class BackupJobSerializer(NetBoxModelSerializer):
         fields = '__all__'
         # These fields define what should be included when the serializer is used with nested=True.
         brief_fields = (
-            'id', 'name', 'status',
+            'id', 'url', 'display', 'name', 'status',
         )

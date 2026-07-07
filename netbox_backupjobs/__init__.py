@@ -1,7 +1,6 @@
 from netbox.plugins import PluginConfig
 from django.urls import include, path
 from .version import __version__
-#from .template_content import template_extensions
 
 class NetboxBackupJobsConfig(PluginConfig):
     name = 'netbox_backupjobs'

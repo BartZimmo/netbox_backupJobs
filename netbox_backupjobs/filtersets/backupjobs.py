@@ -10,6 +10,7 @@ from netbox.filtersets import NetBoxModelFilterSet
 from netbox_backupjobs.choices import (
     BackupJobPlatformChoices,
     BackupJobStatusChoices,
+    BackupJobResultChoices,
     BackupJobAlgorithmChoices,
     BackupJobEnableDeduplicationChoices,
     BackupJobStorageEncryptionEnabledChoices,
@@ -23,6 +24,16 @@ from netbox_backupjobs.choices import (
     BackupJobGFSWeeklyEnabledChoices,
     BackupJobGFSMonthlyEnabledChoices,
     BackupJobGFSYearlyEnabledChoices,
+    BackupJobRunAutomaticallyChoices,
+    BackupJobScheduleDailyEnabledChoices,
+    BackupJobScheduleDailyKindChoices,
+    BackupJobScheduleMonthlyEnabledChoices,
+    BackupJobScheduleMonthlyDayOfWeekChoices,
+    BackupJobPeriodicallyEnabledChoices,
+    BackupJobPeriodicallyUnitChoices,
+    BackupJobAfterJobEnabledChoices,
+    BackupJobScheduleDayOfMonthChoices,
+    BackupJobScheduleMonthlyDayNumberInMonthChoices,
 )
 from netbox_backupjobs.models import BackupJob
 
@@ -60,6 +71,13 @@ class BackupJobFilterSet(NetBoxModelFilterSet):
     job_creation_time = django_filters.DateTimeFromToRangeFilter(
         label=_('Job Creation Time'),
     )
+    LastBackupEndTime = django_filters.DateTimeFromToRangeFilter(
+        label=_('Last Backup End Time'),
+    )
+    LastBackupResult = django_filters.MultipleChoiceFilter(
+        choices=BackupJobResultChoices,
+        label=_('Last Backup Result'),
+    )
     virtual_machine = django_filters.ModelMultipleChoiceFilter(
         field_name='virtual_machines',
         queryset=VirtualMachine.objects.all(),
@@ -94,7 +112,7 @@ class BackupJobFilterSet(NetBoxModelFilterSet):
     )
 
     # Synthetic full backup settings
-    TransformFullToSyntethic = django_filters.MultipleChoiceFilter(
+    TransformFullToSynthetic = django_filters.MultipleChoiceFilter(
         choices=BackupJobEnableSyntheticFullForIncrementalChoices,
         label=_('Synthetic Full (Incremental)'),
     )
@@ -102,7 +120,7 @@ class BackupJobFilterSet(NetBoxModelFilterSet):
         choices=BackupJobEnableSyntheticFullForReverseIncrementalChoices,
         label=_('Synthetic Full (Reverse Incr.)'),
     )
-    TransformToSyntethicKind = django_filters.MultipleChoiceFilter(
+    TransformToSyntheticKind = django_filters.MultipleChoiceFilter(
         choices=BackupJobSyntheticFullChoices,
         label=_('Synthetic Full Kind'),
     )
@@ -135,16 +153,70 @@ class BackupJobFilterSet(NetBoxModelFilterSet):
         label=_('GFS Yearly'),
     )
 
+    # Schedule options
+    RunAutomatically = django_filters.MultipleChoiceFilter(
+        choices=BackupJobRunAutomaticallyChoices,
+        label=_('Run Automatically'),
+    )
+    ScheduleDailyEnabled = django_filters.MultipleChoiceFilter(
+        choices=BackupJobScheduleDailyEnabledChoices,
+        label=_('Daily Enabled'),
+    )
+    ScheduleDailyKind = django_filters.MultipleChoiceFilter(
+        choices=BackupJobScheduleDailyKindChoices,
+        label=_('Daily Kind'),
+    )
+    ScheduleMonthlyEnabled = django_filters.MultipleChoiceFilter(
+        choices=BackupJobScheduleMonthlyEnabledChoices,
+        label=_('Monthly Enabled'),
+    )
+    ScheduleMonthlyDayOfWeek = django_filters.MultipleChoiceFilter(
+        choices=BackupJobScheduleMonthlyDayOfWeekChoices,
+        label=_('Monthly Day of Week'),
+    )
+    ScheduleMonthlyDayNumberInMonth = django_filters.MultipleChoiceFilter(
+        choices=BackupJobScheduleMonthlyDayNumberInMonthChoices,
+        label=_('Monthly Day number of Month'),
+    )
+    ScheduleMonthlyDayOfMonth = django_filters.MultipleChoiceFilter(
+        choices=BackupJobScheduleDayOfMonthChoices,
+        label=_('Monthly Day of Month'),
+    )
+    SchedulePeriodicallyEnabled = django_filters.MultipleChoiceFilter(
+        choices=BackupJobPeriodicallyEnabledChoices,
+        label=_('Periodically Enabled'),
+    )
+    SchedulePeriodicallyUnit = django_filters.MultipleChoiceFilter(
+        choices=BackupJobPeriodicallyUnitChoices,
+        label=_('Periodically Unit'),
+    )
+
+    # After job
+    AfterJobEnabled = django_filters.MultipleChoiceFilter(
+        choices=BackupJobAfterJobEnabledChoices,
+        label=_('After Job Enabled'),
+    )
+    AfterJobName = django_filters.ModelMultipleChoiceFilter(
+        queryset=BackupJob.objects.all(),
+        label=_('After Job'),
+    )
+
     ## In the class Meta you can only add field names that are actual fields of the model.
     class Meta:
         model = BackupJob
         fields = {
-            'id', 'name', 'target', 'jobtype', 'status', 'platform', 'job_creation_time', 'description', 'backup_server_name', 'backup_server_ip', 'virtual_machines', 'comments',
+            'id', 'name', 'target', 'jobtype', 'status', 'platform', 'job_creation_time', 'LastBackupEndTime', 'LastBackupResult', 'description', 'backup_server_name', 'backup_server_ip', 'virtual_machines', 'comments',
             'Algorithm', 'EnableDeduplication', 'StorageEncryptionEnabled',
             'EnableDeletedVmDataRetention',
-            'TransformFullToSyntethic', 'TransformToSyntheticFull', 'TransformToSyntethicKind',
+            'TransformFullToSynthetic', 'TransformToSyntheticFull', 'TransformToSyntheticKind',
             'EnableFullBackup', 'FullBackupScheduleKind',
             'EnableGFS', 'WeeklyEnabled', 'MonthlyEnabled', 'YearlyEnabled',
+            'RunAutomatically',
+            'ScheduleDailyEnabled', 'ScheduleDailyTime', 'ScheduleDailyKind',
+            'ScheduleMonthlyEnabled', 'ScheduleMonthlyTime', 'ScheduleMonthlyDayOfWeek',
+            'ScheduleMonthlyDayNumberInMonth', 'ScheduleMonthlyDayOfMonth',
+            'SchedulePeriodicallyEnabled', 'SchedulePeriodicallyEvery', 'SchedulePeriodicallyUnit',
+            'AfterJobEnabled', 'AfterJobName',
         }
 
     ### Criteria for the Quick search box.
