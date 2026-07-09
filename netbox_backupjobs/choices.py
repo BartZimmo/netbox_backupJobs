@@ -24,11 +24,13 @@ class BackupJobStatusChoices(ChoiceSet):
 
     STATUS_ENABLED = 'enabled'
     STATUS_DISABLED = 'disabled'
+    STATUS_ORPHANED = 'orphaned'
 
 
     CHOICES = [
         (STATUS_ENABLED, _('Enabled'), 'green'),
         (STATUS_DISABLED, _('Disabled'), 'blue'),
+        (STATUS_ORPHANED, _('Orphaned'), 'yellow'),   
     ]
 
 class BackupJobResultChoices(ChoiceSet):
