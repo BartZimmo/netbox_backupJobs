@@ -46,14 +46,14 @@
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Last Backup End Time" %}</th>
-            <td>{{ object.LastBackupEndTime|date:"Y-m-d H:i"|placeholder }}</td>
+            <td>{{ object.last_backup_end_time|date:"Y-m-d H:i"|placeholder }}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Last Backup Result" %}</th>
             <td>
-              {% if object.LastBackupResult %}
-                <span class="badge text-bg-{{ object.get_LastBackupResult_color }}">
-                  {{ object.get_LastBackupResult_display }}
+              {% if object.last_backup_result %}
+                <span class="badge text-bg-{{ object.get_last_backup_result_color }}">
+                  {{ object.get_last_backup_result_display }}
                 </span>
               {% else %}
                 {{ ''|placeholder }}
@@ -80,43 +80,43 @@
         <table class="table table-hover attr-table">
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Algorithm" %}</th>
-            <td>{{ object.get_Algorithm_display }}</td>
+            <td>{{ object.get_algorithm_display }}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Deduplication" %}</th>
             <td>
-              <span class="badge text-bg-{{ object.get_EnableDeduplication_color }}">
-                {{ object.get_EnableDeduplication_display }}
+              <span class="badge text-bg-{{ object.get_enable_deduplication_color }}">
+                {{ object.get_enable_deduplication_display }}
               </span>
             </td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Storage Encryption" %}</th>
             <td>
-              <span class="badge text-bg-{{ object.get_StorageEncryptionEnabled_color }}">
-                {{ object.get_StorageEncryptionEnabled_display }}
+              <span class="badge text-bg-{{ object.get_storage_encryption_enabled_color }}">
+                {{ object.get_storage_encryption_enabled_display }}
               </span>
             </td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Retain Days to Keep" %}</th>
-            <td>{{ object.RetainDaysToKeep|placeholder }}</td>
+            <td>{{ object.retain_days_to_keep|placeholder }}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Retain Cycles" %}</th>
-            <td>{{ object.RetainCycles|placeholder }}</td>
+            <td>{{ object.retain_cycles|placeholder }}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Deleted VM Data Retention" %}</th>
             <td>
-              <span class="badge text-bg-{{ object.get_EnableDeletedVmDataRetention_color }}">
-                {{ object.get_EnableDeletedVmDataRetention_display }}
+              <span class="badge text-bg-{{ object.get_enable_deleted_vm_data_retention_color }}">
+                {{ object.get_enable_deleted_vm_data_retention_display }}
               </span>
             </td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Deleted VM Retain Days" %}</th>
-            <td>{% if object.EnableDeletedVmDataRetention == 'false' %}<s>{% endif %}{{ object.RetainDaysToKeepDeletedVmData|placeholder }}{% if object.EnableDeletedVmDataRetention == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.enable_deleted_vm_data_retention == 'false' %}<s>{% endif %}{{ object.retain_days_to_keep_deleted_vm_data|placeholder }}{% if object.enable_deleted_vm_data_retention == 'false' %}</s>{% endif %}</td>
           </tr>
         </table>
       </div>
@@ -134,106 +134,118 @@
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Run Automatically" %}</th>
             <td>
-              <span class="badge text-bg-{{ object.get_RunAutomatically_color }}">
-                {{ object.get_RunAutomatically_display }}
+              <span class="badge text-bg-{{ object.get_run_automatically_color }}">
+                {{ object.get_run_automatically_display }}
               </span>
             </td>
           </tr>
           <tr>
+            <th colspan="2" class="pt-4 border-top text-uppercase text-muted small">{% trans "Daily Schedule" %}</th>
+          </tr>
+          <tr>
             <th scope="row" style="width: 220px;">{% trans "Daily Enabled" %}</th>
-            <td>{% if object.RunAutomatically == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_ScheduleDailyEnabled_color }}">{{ object.get_ScheduleDailyEnabled_display }}</span>{% if object.RunAutomatically == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_schedule_daily_enabled_color }}">{{ object.get_schedule_daily_enabled_display }}</span>{% if object.run_automatically == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Daily Time" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.ScheduleDailyEnabled == 'false' %}<s>{% endif %}{{ object.ScheduleDailyTime|time:"H:i"|placeholder }}{% if object.RunAutomatically == 'false' or object.ScheduleDailyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_daily_enabled == 'false' %}<s>{% endif %}{{ object.schedule_daily_time|time:"H:i"|placeholder }}{% if object.run_automatically == 'false' or object.schedule_daily_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Daily Kind" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.ScheduleDailyEnabled == 'false' %}<s>{% endif %}{{ object.get_ScheduleDailyKind_display }}{% if object.RunAutomatically == 'false' or object.ScheduleDailyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_daily_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_daily_kind_display }}{% if object.run_automatically == 'false' or object.schedule_daily_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Daily Days" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.ScheduleDailyEnabled == 'false' or object.ScheduleDailyKind != 'selected days' %}<s>{% endif %}{{ object.get_ScheduleDailyDays_display }}{% if object.RunAutomatically == 'false' or object.ScheduleDailyEnabled == 'false' or object.ScheduleDailyKind != 'selected days' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_daily_enabled == 'false' or object.schedule_daily_kind != 'selected days' %}<s>{% endif %}{{ object.get_schedule_daily_days_display }}{% if object.run_automatically == 'false' or object.schedule_daily_enabled == 'false' or object.schedule_daily_kind != 'selected days' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th colspan="2" class="pt-4 border-top text-uppercase text-muted small">{% trans "Monthly Schedule" %}</th>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Monthly Enabled" %}</th>
-            <td>{% if object.RunAutomatically == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_ScheduleMonthlyEnabled_color }}">{{ object.get_ScheduleMonthlyEnabled_display }}</span>{% if object.RunAutomatically == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_schedule_monthly_enabled_color }}">{{ object.get_schedule_monthly_enabled_display }}</span>{% if object.run_automatically == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Monthly Time" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' %}<s>{% endif %}{{ object.ScheduleMonthlyTime|time:"H:i"|placeholder }}{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' %}<s>{% endif %}{{ object.schedule_monthly_time|time:"H:i"|placeholder }}{% if object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Monthly Day of Week" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' or object.ScheduleMonthlyDayNumberInMonth == 'this day' %}<s>{% endif %}{{ object.get_ScheduleMonthlyDayOfWeek_display }}{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' or object.ScheduleMonthlyDayNumberInMonth == 'this day' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' or object.schedule_monthly_day_number_in_month == 'this day' %}<s>{% endif %}{{ object.get_schedule_monthly_day_of_week_display }}{% if object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' or object.schedule_monthly_day_number_in_month == 'this day' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Monthly Day number of Month" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' %}<s>{% endif %}{{ object.get_ScheduleMonthlyDayNumberInMonth_display }}{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_monthly_day_number_in_month_display }}{% if object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Monthly Day of Month" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' or object.ScheduleMonthlyDayNumberInMonth != 'this day' %}<s>{% endif %}{{ object.get_ScheduleMonthlyDayOfMonth_display }}{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' or object.ScheduleMonthlyDayNumberInMonth != 'this day' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' or object.schedule_monthly_day_number_in_month != 'this day' %}<s>{% endif %}{{ object.get_schedule_monthly_day_of_month_display }}{% if object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' or object.schedule_monthly_day_number_in_month != 'this day' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Monthly Months" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' %}<s>{% endif %}{{ object.get_ScheduleMonthlyMonths_display }}{% if object.RunAutomatically == 'false' or object.ScheduleMonthlyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_monthly_months_display }}{% if object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th colspan="2" class="pt-4 border-top text-uppercase text-muted small">{% trans "Periodically Schedule" %}</th>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Periodically Enabled" %}</th>
-            <td>{% if object.RunAutomatically == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_SchedulePeriodicallyEnabled_color }}">{{ object.get_SchedulePeriodicallyEnabled_display }}</span>{% if object.RunAutomatically == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_schedule_periodically_enabled_color }}">{{ object.get_schedule_periodically_enabled_display }}</span>{% if object.run_automatically == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Periodically Every" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.SchedulePeriodicallyEvery|placeholder }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.schedule_periodically_every|placeholder }}{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Periodically Unit" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallyUnit_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_unit_display }}{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Hour Offset (min)" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.SchedulePeriodicallyHourOffsetInMin|placeholder }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.schedule_periodically_hour_offset_in_min|placeholder }}{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Monday Schema" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallyMondaySchema_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_monday_schema_display }}{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Tuesday Schema" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallyTuesdaySchema_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_tuesday_schema_display }}{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Wednesday Schema" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallyWednesdaySchema_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_wednesday_schema_display }}{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Thursday Schema" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallyThursdaySchema_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_thursday_schema_display }}{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Friday Schema" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallyFridaySchema_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_friday_schema_display }}{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Saturday Schema" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallySaturdaySchema_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_saturday_schema_display }}{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Sunday Schema" %}</th>
-            <td>{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}<s>{% endif %}{{ object.get_SchedulePeriodicallySundaySchema_display }}{% if object.RunAutomatically == 'false' or object.SchedulePeriodicallyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_sunday_schema_display }}{% if object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th colspan="2" class="pt-4 border-top text-uppercase text-muted small">{% trans "After Job Settings" %}</th>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "After Job Enabled" %}</th>
             <td>
-              <span class="badge text-bg-{{ object.get_AfterJobEnabled_color }}">
-                {{ object.get_AfterJobEnabled_display }}
+              <span class="badge text-bg-{{ object.get_after_job_enabled_color }}">
+                {{ object.get_after_job_enabled_display }}
               </span>
             </td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "After Job" %}</th>
-            <td>{% if object.AfterJobEnabled == 'false' %}<s>{% endif %}{{ object.AfterJobName|linkify|placeholder }}{% if object.AfterJobEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.after_job_enabled == 'false' %}<s>{% endif %}{{ object.after_job_name|linkify|placeholder }}{% if object.after_job_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
         </table>
       </div>
@@ -244,38 +256,38 @@
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Synthetic Full (Incremental)" %}</th>
             <td>
-              <span class="badge text-bg-{{ object.get_TransformFullToSynthetic_color }}">
-                {{ object.get_TransformFullToSynthetic_display }}
+              <span class="badge text-bg-{{ object.get_transform_full_to_synthetic_color }}">
+                {{ object.get_transform_full_to_synthetic_display }}
               </span>
             </td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Synthetic Full (Reverse Incr.)" %}</th>
             <td>
-              <span class="badge text-bg-{{ object.get_TransformToSyntheticFull_color }}">
-                {{ object.get_TransformToSyntheticFull_display }}
+              <span class="badge text-bg-{{ object.get_transform_to_synthetic_full_color }}">
+                {{ object.get_transform_to_synthetic_full_display }}
               </span>
             </td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Kind" %}</th>
-            <td>{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' %}<s>{% endif %}{{ object.get_TransformToSyntheticKind_display }}{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.transform_full_to_synthetic == 'false' and object.transform_to_synthetic_full == 'false' %}<s>{% endif %}{{ object.get_transform_to_synthetic_kind_display }}{% if object.transform_full_to_synthetic == 'false' and object.transform_to_synthetic_full == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Days of Week" %}</th>
-            <td>{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'monthly' %}<s>{% endif %}{{ object.get_TransformToSyntheticDays_display }}{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'monthly' %}</s>{% endif %}</td>
+            <td>{% if object.transform_full_to_synthetic == 'false' and object.transform_to_synthetic_full == 'false' or object.transform_to_synthetic_kind == 'monthly' %}<s>{% endif %}{{ object.get_transform_to_synthetic_days_display }}{% if object.transform_full_to_synthetic == 'false' and object.transform_to_synthetic_full == 'false' or object.transform_to_synthetic_kind == 'monthly' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Week of Month" %}</th>
-            <td>{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'daily' %}<s>{% endif %}{{ object.get_SyntheticFullDayNumberInMonth_display }}{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'daily' %}</s>{% endif %}</td>
+            <td>{% if object.transform_full_to_synthetic == 'false' and object.transform_to_synthetic_full == 'false' or object.transform_to_synthetic_kind == 'daily' %}<s>{% endif %}{{ object.get_synthetic_full_day_number_in_month_display }}{% if object.transform_full_to_synthetic == 'false' and object.transform_to_synthetic_full == 'false' or object.transform_to_synthetic_kind == 'daily' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Day of Week (Monthly)" %}</th>
-            <td>{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'daily' %}<s>{% endif %}{{ object.get_SyntheticFullDayOfWeek_display }}{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'daily' %}</s>{% endif %}</td>
+            <td>{% if object.transform_full_to_synthetic == 'false' and object.transform_to_synthetic_full == 'false' or object.transform_to_synthetic_kind == 'daily' %}<s>{% endif %}{{ object.get_synthetic_full_day_of_week_display }}{% if object.transform_full_to_synthetic == 'false' and object.transform_to_synthetic_full == 'false' or object.transform_to_synthetic_kind == 'daily' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Months" %}</th>
-            <td>{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'daily' %}<s>{% endif %}{{ object.get_TransformToSyntheticMonthly_display }}{% if object.TransformFullToSynthetic == 'false' and object.TransformToSyntheticFull == 'false' or object.TransformToSyntheticKind == 'daily' %}</s>{% endif %}</td>
+            <td>{% if object.transform_full_to_synthetic == 'false' and object.transform_to_synthetic_full == 'false' or object.transform_to_synthetic_kind == 'daily' %}<s>{% endif %}{{ object.get_transform_to_synthetic_monthly_display }}{% if object.transform_full_to_synthetic == 'false' and object.transform_to_synthetic_full == 'false' or object.transform_to_synthetic_kind == 'daily' %}</s>{% endif %}</td>
           </tr>
         </table>
       </div>
@@ -286,30 +298,30 @@
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Active Full Backup" %}</th>
             <td>
-              <span class="badge text-bg-{{ object.get_EnableFullBackup_color }}">
-                {{ object.get_EnableFullBackup_display }}
+              <span class="badge text-bg-{{ object.get_enable_full_backup_color }}">
+                {{ object.get_enable_full_backup_display }}
               </span>
             </td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Kind" %}</th>
-            <td>{% if object.EnableFullBackup == 'false' %}<s>{% endif %}{{ object.get_FullBackupScheduleKind_display }}{% if object.EnableFullBackup == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.enable_full_backup == 'false' %}<s>{% endif %}{{ object.get_full_backup_schedule_kind_display }}{% if object.enable_full_backup == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Days of Week" %}</th>
-            <td>{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'monthly' %}<s>{% endif %}{{ object.get_FullBackupDays_display }}{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'monthly' %}</s>{% endif %}</td>
+            <td>{% if object.enable_full_backup == 'false' or object.full_backup_schedule_kind == 'monthly' %}<s>{% endif %}{{ object.get_full_backup_days_display }}{% if object.enable_full_backup == 'false' or object.full_backup_schedule_kind == 'monthly' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Week of Month" %}</th>
-            <td>{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'daily' %}<s>{% endif %}{{ object.get_FullBackupDayNumberInMonth_display }}{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'daily' %}</s>{% endif %}</td>
+            <td>{% if object.enable_full_backup == 'false' or object.full_backup_schedule_kind == 'daily' %}<s>{% endif %}{{ object.get_full_backup_day_number_in_month_display }}{% if object.enable_full_backup == 'false' or object.full_backup_schedule_kind == 'daily' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Day of Week (Monthly)" %}</th>
-            <td>{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'daily' %}<s>{% endif %}{{ object.get_FullBackupDayOfWeek_display }}{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'daily' %}</s>{% endif %}</td>
+            <td>{% if object.enable_full_backup == 'false' or object.full_backup_schedule_kind == 'daily' %}<s>{% endif %}{{ object.get_full_backup_day_of_week_display }}{% if object.enable_full_backup == 'false' or object.full_backup_schedule_kind == 'daily' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Months" %}</th>
-            <td>{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'daily' %}<s>{% endif %}{{ object.get_FullBackupMonths_display }}{% if object.EnableFullBackup == 'false' or object.FullBackupScheduleKind == 'daily' %}</s>{% endif %}</td>
+            <td>{% if object.enable_full_backup == 'false' or object.full_backup_schedule_kind == 'daily' %}<s>{% endif %}{{ object.get_full_backup_months_display }}{% if object.enable_full_backup == 'false' or object.full_backup_schedule_kind == 'daily' %}</s>{% endif %}</td>
           </tr>
         </table>
       </div>
@@ -320,46 +332,55 @@
           <tr>
             <th scope="row" style="width: 220px;">{% trans "GFS Enabled" %}</th>
             <td>
-              <span class="badge text-bg-{{ object.get_EnableGFS_color }}">
-                {{ object.get_EnableGFS_display }}
+              <span class="badge text-bg-{{ object.get_enable_gfs_color }}">
+                {{ object.get_enable_gfs_display }}
               </span>
             </td>
           </tr>
           <tr>
+            <th colspan="2" class="pt-4 border-top text-uppercase text-muted small">{% trans "Weekly Retention" %}</th>
+          </tr>
+          <tr>
             <th scope="row" style="width: 220px;">{% trans "Weekly Enabled" %}</th>
-            <td>{% if object.EnableGFS == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_WeeklyEnabled_color }}">{{ object.get_WeeklyEnabled_display }}</span>{% if object.EnableGFS == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.enable_gfs == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_weekly_enabled_color }}">{{ object.get_weekly_enabled_display }}</span>{% if object.enable_gfs == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Weekly Keep (weeks)" %}</th>
-            <td>{% if object.EnableGFS == 'false' or object.WeeklyEnabled == 'false' %}<s>{% endif %}{{ object.WeeklyKeepBackupsFor|placeholder }}{% if object.EnableGFS == 'false' or object.WeeklyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.enable_gfs == 'false' or object.weekly_enabled == 'false' %}<s>{% endif %}{{ object.weekly_keep_backups_for|placeholder }}{% if object.enable_gfs == 'false' or object.weekly_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Weekly Day" %}</th>
-            <td>{% if object.EnableGFS == 'false' or object.WeeklyEnabled == 'false' %}<s>{% endif %}{{ object.get_WeeklyKeepBackupsOnDayOfWeek_display }}{% if object.EnableGFS == 'false' or object.WeeklyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.enable_gfs == 'false' or object.weekly_enabled == 'false' %}<s>{% endif %}{{ object.get_weekly_keep_backups_on_day_of_week_display }}{% if object.enable_gfs == 'false' or object.weekly_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th colspan="2" class="pt-4 border-top text-uppercase text-muted small">{% trans "Monthly Retention" %}</th>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Monthly Enabled" %}</th>
-            <td>{% if object.EnableGFS == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_MonthlyEnabled_color }}">{{ object.get_MonthlyEnabled_display }}</span>{% if object.EnableGFS == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.enable_gfs == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_monthly_enabled_color }}">{{ object.get_monthly_enabled_display }}</span>{% if object.enable_gfs == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Monthly Keep (months)" %}</th>
-            <td>{% if object.EnableGFS == 'false' or object.MonthlyEnabled == 'false' %}<s>{% endif %}{{ object.MonthlyKeepBackupsFor|placeholder }}{% if object.EnableGFS == 'false' or object.MonthlyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.enable_gfs == 'false' or object.monthly_enabled == 'false' %}<s>{% endif %}{{ object.monthly_keep_backups_for|placeholder }}{% if object.enable_gfs == 'false' or object.monthly_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Monthly Week" %}</th>
-            <td>{% if object.EnableGFS == 'false' or object.MonthlyEnabled == 'false' %}<s>{% endif %}{{ object.get_MonthlyKeepBackupsWeekOfMonth_display }}{% if object.EnableGFS == 'false' or object.MonthlyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.enable_gfs == 'false' or object.monthly_enabled == 'false' %}<s>{% endif %}{{ object.get_monthly_keep_backups_week_of_month_display }}{% if object.enable_gfs == 'false' or object.monthly_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th colspan="2" class="pt-4 border-top text-uppercase text-muted small">{% trans "Yearly Retention" %}</th>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Yearly Enabled" %}</th>
-            <td>{% if object.EnableGFS == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_YearlyEnabled_color }}">{{ object.get_YearlyEnabled_display }}</span>{% if object.EnableGFS == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.enable_gfs == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_yearly_enabled_color }}">{{ object.get_yearly_enabled_display }}</span>{% if object.enable_gfs == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Yearly Keep (years)" %}</th>
-            <td>{% if object.EnableGFS == 'false' or object.YearlyEnabled == 'false' %}<s>{% endif %}{{ object.YearlyKeepBackupsFor|placeholder }}{% if object.EnableGFS == 'false' or object.YearlyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.enable_gfs == 'false' or object.yearly_enabled == 'false' %}<s>{% endif %}{{ object.yearly_keep_backups_for|placeholder }}{% if object.enable_gfs == 'false' or object.yearly_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
           <tr>
             <th scope="row" style="width: 220px;">{% trans "Yearly Month" %}</th>
-            <td>{% if object.EnableGFS == 'false' or object.YearlyEnabled == 'false' %}<s>{% endif %}{{ object.get_YearlyKeepBackupsOnMonthOfYear_display }}{% if object.EnableGFS == 'false' or object.YearlyEnabled == 'false' %}</s>{% endif %}</td>
+            <td>{% if object.enable_gfs == 'false' or object.yearly_enabled == 'false' %}<s>{% endif %}{{ object.get_yearly_keep_backups_on_month_of_year_display }}{% if object.enable_gfs == 'false' or object.yearly_enabled == 'false' %}</s>{% endif %}</td>
           </tr>
         </table>
       </div>

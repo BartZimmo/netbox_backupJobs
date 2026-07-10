@@ -1,0 +1,29 @@
+- name: Test-Backup-Copy-Job-Full
+  jobtype: Backup Copy
+  status: enabled
+  mode: periodic
+  data_transfer_mode: direct
+  description: Full example covering retention, GFS and schedule settings
+  target: Backup Copy Repository 01
+  backup_jobs:
+    - Test-Backup-Job-01
+    - Test-Backup-Job-02
+  retain_days_to_keep: 14
+  enable_deduplication: 'true'
+  storage_encryption_enabled: 'true'
+  transaction_log_copy_enabled: 'true'
+  enable_deleted_vm_data_retention: 'true'
+  retain_days_to_keep_deleted_vm_data: 30
+  enable_gfs: 'true'
+  weekly_enabled: 'true'
+  weekly_keep_backups_for: 4
+  weekly_keep_backups_on_day_of_week: sunday
+  monthly_enabled: 'true'
+  monthly_keep_backups_for: 12
+  monthly_keep_backups_week_of_month: first
+  yearly_enabled: 'false'
+  run_automatically: 'true'
+  schedule_daily_enabled: 'true'
+  schedule_daily_time: '23:00:00'
+  schedule_daily_kind: everyday
+  id: 

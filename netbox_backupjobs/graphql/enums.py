@@ -4,6 +4,31 @@ from netbox_backupjobs.choices import (
     BackupJobPlatformChoices,
     BackupJobStatusChoices,
     BackupJobResultChoices,
+    BackupCopyJobStatusChoices,
+    BackupCopyJobResultChoices,
+    BackupCopyJobModeChoices,
+    BackupCopyJobEnableDeduplicationChoices,
+    BackupCopyJobStorageEncryptionEnabledChoices,
+    BackupCopyJobEnableDeletedVmDataRetentionChoices,
+    BackupCopyJobGFSEnableChoices,
+    BackupCopyJobGFSWeeklyEnabledChoices,
+    BackupCopyJobGFSWeeklyDayChoices,
+    BackupCopyJobGFSMonthlyEnabledChoices,
+    BackupCopyJobGFSWeekOfMonthChoices,
+    BackupCopyJobGFSYearlyEnabledChoices,
+    BackupCopyJobGFSMonthOfYearChoices,
+    BackupCopyJobDataTransferModeChoices,
+    BackupCopyJobTransactionLogCopyEnabledChoices,
+    BackupCopyJobTransferWindowChoices,
+    BackupCopyJobRunAutomaticallyChoices,
+    BackupCopyJobScheduleDailyEnabledChoices,
+    BackupCopyJobScheduleDailyKindChoices,
+    BackupCopyJobScheduleMonthlyEnabledChoices,
+    BackupCopyJobScheduleMonthlyDayOfWeekChoices,
+    BackupCopyJobScheduleMonthlyDayNumberInMonthChoices,
+    BackupCopyJobPeriodicallyEnabledChoices,
+    BackupCopyJobPeriodicallyUnitChoices,
+    BackupCopyJobAfterJobEnabledChoices,
     BackupJobAlgorithmChoices,
     BackupJobStorageEncryptionEnabledChoices,
     BackupJobEnableDeduplicationChoices,
@@ -72,3 +97,37 @@ BackupJobPeriodicallyEnabledEnum = strawberry.enum(BackupJobPeriodicallyEnabledC
 BackupJobPeriodicallyUnitEnum = strawberry.enum(BackupJobPeriodicallyUnitChoices.as_enum())
 BackupJobAfterJobEnabledEnum = strawberry.enum(BackupJobAfterJobEnabledChoices.as_enum())
 BackupJobScheduleMonthlyDayNumberInMonthEnum = strawberry.enum(BackupJobScheduleMonthlyDayNumberInMonthChoices.as_enum())
+
+BackupCopyJobStatusEnum = strawberry.enum(BackupCopyJobStatusChoices.as_enum())
+BackupCopyJobResultEnum = strawberry.enum(BackupCopyJobResultChoices.as_enum())
+BackupCopyJobModeEnum = strawberry.enum(BackupCopyJobModeChoices.as_enum())
+BackupCopyJobEnableDeduplicationEnum = strawberry.enum(BackupCopyJobEnableDeduplicationChoices.as_enum())
+BackupCopyJobStorageEncryptionEnabledEnum = strawberry.enum(BackupCopyJobStorageEncryptionEnabledChoices.as_enum())
+BackupCopyJobEnableDeletedVmDataRetentionEnum = strawberry.enum(
+    BackupCopyJobEnableDeletedVmDataRetentionChoices.as_enum()
+)
+BackupCopyJobGFSEnableEnum = strawberry.enum(BackupCopyJobGFSEnableChoices.as_enum())
+BackupCopyJobGFSWeeklyEnabledEnum = strawberry.enum(BackupCopyJobGFSWeeklyEnabledChoices.as_enum())
+BackupCopyJobGFSWeeklyDayEnum = strawberry.enum(BackupCopyJobGFSWeeklyDayChoices.as_enum())
+BackupCopyJobGFSMonthlyEnabledEnum = strawberry.enum(BackupCopyJobGFSMonthlyEnabledChoices.as_enum())
+BackupCopyJobGFSWeekOfMonthEnum = strawberry.enum(BackupCopyJobGFSWeekOfMonthChoices.as_enum())
+BackupCopyJobGFSYearlyEnabledEnum = strawberry.enum(BackupCopyJobGFSYearlyEnabledChoices.as_enum())
+BackupCopyJobGFSMonthOfYearEnum = strawberry.enum(BackupCopyJobGFSMonthOfYearChoices.as_enum())
+BackupCopyJobDataTransferModeEnum = strawberry.enum(BackupCopyJobDataTransferModeChoices.as_enum())
+BackupCopyJobTransactionLogCopyEnabledEnum = strawberry.enum(BackupCopyJobTransactionLogCopyEnabledChoices.as_enum())
+BackupCopyJobTransferWindowEnum = strawberry.enum(BackupCopyJobTransferWindowChoices.as_enum())
+# Note: BackupCopyJobScheduleHourChoices values are '0'-'23'; can't be a GraphQL enum since
+# enum values may not start with a digit. Use StringArrayLookup in filters.py instead.
+BackupCopyJobRunAutomaticallyEnum = strawberry.enum(BackupCopyJobRunAutomaticallyChoices.as_enum())
+BackupCopyJobScheduleDailyEnabledEnum = strawberry.enum(BackupCopyJobScheduleDailyEnabledChoices.as_enum())
+BackupCopyJobScheduleDailyKindEnum = strawberry.enum(BackupCopyJobScheduleDailyKindChoices.as_enum())
+BackupCopyJobScheduleMonthlyEnabledEnum = strawberry.enum(BackupCopyJobScheduleMonthlyEnabledChoices.as_enum())
+BackupCopyJobScheduleMonthlyDayOfWeekEnum = strawberry.enum(BackupCopyJobScheduleMonthlyDayOfWeekChoices.as_enum())
+BackupCopyJobScheduleMonthlyDayNumberInMonthEnum = strawberry.enum(
+    BackupCopyJobScheduleMonthlyDayNumberInMonthChoices.as_enum()
+)
+BackupCopyJobPeriodicallyEnabledEnum = strawberry.enum(BackupCopyJobPeriodicallyEnabledChoices.as_enum())
+BackupCopyJobPeriodicallyUnitEnum = strawberry.enum(BackupCopyJobPeriodicallyUnitChoices.as_enum())
+BackupCopyJobAfterJobEnabledEnum = strawberry.enum(BackupCopyJobAfterJobEnabledChoices.as_enum())
+# Note: BackupCopyJobScheduleDayOfMonthChoices values are '1'-'31' plus 'last'; can't be a GraphQL
+# enum since enum values may not start with a digit. Use StrFilterLookup in filters.py instead.

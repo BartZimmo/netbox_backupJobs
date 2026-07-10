@@ -11,4 +11,8 @@ urlpatterns = [
     path('backupjobs/', include(get_model_urls('netbox_backupjobs', 'backupjob', detail=False))),
     path('backupjobs/<int:pk>/', include(get_model_urls('netbox_backupjobs', 'backupjob'))),
 
+    # BackupCopyJobs
+    path('backupcopyjobs/', include(get_model_urls('netbox_backupjobs', 'backupcopyjob', detail=False))),
+    path('backupcopyjobs/<int:pk>/', include(get_model_urls('netbox_backupjobs', 'backupcopyjob'))),
+
 ]

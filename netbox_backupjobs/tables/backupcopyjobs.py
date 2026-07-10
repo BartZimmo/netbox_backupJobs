@@ -1,21 +1,18 @@
 import django_tables2 as tables
-from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from netbox.tables import NetBoxTable, columns
-from utilities.tables import register_table_column
-from virtualization.tables import VirtualMachineTable
-from netbox_backupjobs.models import BackupJob
+from netbox_backupjobs.models import BackupCopyJob
 
 __all__ = (
-    'BackupJobTable',
+    'BackupCopyJobTable',
 )
 
 
-class BackupJobTable(NetBoxTable):
+class BackupCopyJobTable(NetBoxTable):
     """
-    Table for displaying BackupJob objects in list views.
+    Table for displaying BackupCopyJob objects in list views.
     """
     name = tables.Column(
         verbose_name=_('Name'),
@@ -24,18 +21,17 @@ class BackupJobTable(NetBoxTable):
     status = columns.ChoiceFieldColumn(
         verbose_name=_('Status'),
     )
+    mode = tables.Column(
+        verbose_name=_('Copy Mode'),
+    )
+    data_transfer_mode = tables.Column(
+        verbose_name=_('Data Transfer Mode'),
+    )
     jobtype = tables.Column(
         verbose_name=_('Job Type'),
     )
-    platform = tables.Column(
-        verbose_name=_('Platform'),
-    )
     job_creation_time = tables.DateTimeColumn(
         verbose_name=_('Job Creation Time'),
-        format='Y-m-d H:i',
-    )
-    last_backup_end_time = tables.DateTimeColumn(
-        verbose_name=_('Last Backup End Time'),
         format='Y-m-d H:i',
     )
     last_backup_result = columns.ChoiceFieldColumn(
@@ -43,6 +39,9 @@ class BackupJobTable(NetBoxTable):
     )
     description = tables.Column(
         verbose_name=_('Description'),
+    )
+    retain_days_to_keep = tables.Column(
+        verbose_name=_('Retain Days to Keep'),
     )
     backup_server_name = tables.Column(
         verbose_name=_('Backup Server'),
@@ -56,84 +55,26 @@ class BackupJobTable(NetBoxTable):
     target = tables.Column(
         verbose_name=_('Target'),
     )
-    virtual_machines = columns.ManyToManyColumn(
-        verbose_name=_('Virtual Machines'),
-        linkify_item=True,
-    )
-    virtual_machine_count = tables.Column(
-        verbose_name=_('VM Count'),
-        empty_values=(),
-        default=0,
-    )
-    copy_jobs = columns.ManyToManyColumn(
-        verbose_name=_('Backup Copy Jobs'),
+    backup_jobs = columns.ManyToManyColumn(
+        verbose_name=_('Backup Jobs'),
         linkify_item=True,
     )
 
     # Advanced settings
-    algorithm = tables.Column(
-        verbose_name=_('Algorithm'),
-    )
     enable_deduplication = columns.ChoiceFieldColumn(
         verbose_name=_('Deduplication'),
     )
     storage_encryption_enabled = columns.ChoiceFieldColumn(
         verbose_name=_('Storage Encryption'),
     )
-    retain_days_to_keep = tables.Column(
-        verbose_name=_('Retain Days'),
-    )
-    retain_cycles = tables.Column(
-        verbose_name=_('Retain Cycles'),
+    transaction_log_copy_enabled = columns.ChoiceFieldColumn(
+        verbose_name=_('Transaction Log Copy'),
     )
     enable_deleted_vm_data_retention = columns.ChoiceFieldColumn(
         verbose_name=_('Deleted VM Retention'),
     )
     retain_days_to_keep_deleted_vm_data = tables.Column(
         verbose_name=_('Deleted VM Retain Days'),
-    )
-
-    # Synthetic full backup settings
-    transform_full_to_synthetic = columns.ChoiceFieldColumn(
-        verbose_name=_('Synthetic Full (Incremental)'),
-    )
-    transform_to_synthetic_full = columns.ChoiceFieldColumn(
-        verbose_name=_('Synthetic Full (Reverse Incr.)'),
-    )
-    transform_to_synthetic_kind = tables.Column(
-        verbose_name=_('Synthetic Full Kind'),
-    )
-    transform_to_synthetic_days = tables.Column(
-        verbose_name=_('Synthetic Full Days'),
-    )
-    synthetic_full_day_number_in_month = tables.Column(
-        verbose_name=_('Synthetic Full Week'),
-    )
-    synthetic_full_day_of_week = tables.Column(
-        verbose_name=_('Synthetic Full Weekday'),
-    )
-    transform_to_synthetic_monthly = tables.Column(
-        verbose_name=_('Synthetic Full Months'),
-    )
-
-    # Active full backup settings
-    enable_full_backup = columns.ChoiceFieldColumn(
-        verbose_name=_('Active Full Backup'),
-    )
-    full_backup_schedule_kind = tables.Column(
-        verbose_name=_('Full Backup Kind'),
-    )
-    full_backup_days = tables.Column(
-        verbose_name=_('Full Backup Days'),
-    )
-    full_backup_day_number_in_month = tables.Column(
-        verbose_name=_('Full Backup Week'),
-    )
-    full_backup_day_of_week = tables.Column(
-        verbose_name=_('Full Backup Weekday'),
-    )
-    full_backup_months = tables.Column(
-        verbose_name=_('Full Backup Months'),
     )
 
     # GFS settings
@@ -169,6 +110,32 @@ class BackupJobTable(NetBoxTable):
     )
 
     # Schedule options
+    transfer_window = columns.ChoiceFieldColumn(
+        verbose_name=_('Transfer Window'),
+    )
+    transfer_window_monday_schema = tables.Column(
+        verbose_name=_('Monday Schema'),
+    )
+    transfer_window_tuesday_schema = tables.Column(
+        verbose_name=_('Tuesday Schema'),
+    )
+    transfer_window_wednesday_schema = tables.Column(
+        verbose_name=_('Wednesday Schema'),
+    )
+    transfer_window_thursday_schema = tables.Column(
+        verbose_name=_('Thursday Schema'),
+    )
+    transfer_window_friday_schema = tables.Column(
+        verbose_name=_('Friday Schema'),
+    )
+    transfer_window_saturday_schema = tables.Column(
+        verbose_name=_('Saturday Schema'),
+    )
+    transfer_window_sunday_schema = tables.Column(
+        verbose_name=_('Sunday Schema'),
+    )
+
+    # Schedule options (used when mode is periodic)
     run_automatically = columns.ChoiceFieldColumn(
         verbose_name=_('Run Automatically'),
     )
@@ -244,17 +211,6 @@ class BackupJobTable(NetBoxTable):
         verbose_name=_('After Job Name'),
     )
 
-    comments = tables.Column(
-        verbose_name=_('Comments'),
-    )
-    tags = columns.TagColumn(
-        url_name='plugins:netbox_backupjobs:backupjob_list',
-    )
-
-    def render_virtual_machine_count(self, value, record):
-        url = reverse('plugins:netbox_backupjobs:backupjob_virtual_machines', kwargs={'pk': record.pk})
-        return format_html('<a href="{}">{}</a>', url, value or 0)
-
     def render_backup_server_name(self, value, record):
         if hasattr(value, 'get_absolute_url'):
             return format_html('<a href="{}">{}</a>', value.get_absolute_url(), value)
@@ -264,72 +220,6 @@ class BackupJobTable(NetBoxTable):
         if record.enable_deleted_vm_data_retention == 'false':
             return format_html('<s>{}</s>', value) if value else '—'
         return value or '—'
-
-    def _both_disabled(self, record):
-        return record.transform_full_to_synthetic == 'false' and record.transform_to_synthetic_full == 'false'
-
-    def render_transform_to_synthetic_kind(self, value, record):
-        text = record.get_transform_to_synthetic_kind_display()
-        if self._both_disabled(record):
-            return format_html('<s>{}</s>', text)
-        return text
-
-    def render_transform_to_synthetic_days(self, value, record):
-        text = record.get_transform_to_synthetic_days_display()
-        if self._both_disabled(record) or record.transform_to_synthetic_kind == 'monthly':
-            return format_html('<s>{}</s>', text)
-        return text
-
-    def render_synthetic_full_day_number_in_month(self, value, record):
-        text = record.get_synthetic_full_day_number_in_month_display()
-        if self._both_disabled(record) or record.transform_to_synthetic_kind == 'daily':
-            return format_html('<s>{}</s>', text)
-        return text
-
-    def render_synthetic_full_day_of_week(self, value, record):
-        text = record.get_synthetic_full_day_of_week_display()
-        if self._both_disabled(record) or record.transform_to_synthetic_kind == 'daily':
-            return format_html('<s>{}</s>', text)
-        return text
-
-    def render_transform_to_synthetic_monthly(self, value, record):
-        text = record.get_transform_to_synthetic_monthly_display()
-        if self._both_disabled(record) or record.transform_to_synthetic_kind == 'daily':
-            return format_html('<s>{}</s>', text)
-        return text
-
-    def _full_backup_disabled(self, record):
-        return record.enable_full_backup == 'false'
-
-    def render_full_backup_schedule_kind(self, value, record):
-        text = record.get_full_backup_schedule_kind_display()
-        if self._full_backup_disabled(record):
-            return format_html('<s>{}</s>', text)
-        return text
-
-    def render_full_backup_days(self, value, record):
-        text = record.get_full_backup_days_display()
-        if self._full_backup_disabled(record) or record.full_backup_schedule_kind == 'monthly':
-            return format_html('<s>{}</s>', text)
-        return text
-
-    def render_full_backup_day_number_in_month(self, value, record):
-        text = record.get_full_backup_day_number_in_month_display()
-        if self._full_backup_disabled(record) or record.full_backup_schedule_kind == 'daily':
-            return format_html('<s>{}</s>', text)
-        return text
-
-    def render_full_backup_day_of_week(self, value, record):
-        text = record.get_full_backup_day_of_week_display()
-        if self._full_backup_disabled(record) or record.full_backup_schedule_kind == 'daily':
-            return format_html('<s>{}</s>', text)
-        return text
-
-    def render_full_backup_months(self, value, record):
-        text = record.get_full_backup_months_display()
-        if self._full_backup_disabled(record) or record.full_backup_schedule_kind == 'daily':
-            return format_html('<s>{}</s>', text)
-        return text
 
     def _gfs_disabled(self, record):
         return record.enable_gfs == 'false'
@@ -370,8 +260,53 @@ class BackupJobTable(NetBoxTable):
             return format_html('<s>{}</s>', text)
         return text
 
+    def _transfer_window_not_by_schema(self, record):
+        return record.transfer_window != 'by_schema'
+
+    def render_transfer_window_monday_schema(self, value, record):
+        text = record.get_transfer_window_monday_schema_display()
+        if self._transfer_window_not_by_schema(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_transfer_window_tuesday_schema(self, value, record):
+        text = record.get_transfer_window_tuesday_schema_display()
+        if self._transfer_window_not_by_schema(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_transfer_window_wednesday_schema(self, value, record):
+        text = record.get_transfer_window_wednesday_schema_display()
+        if self._transfer_window_not_by_schema(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_transfer_window_thursday_schema(self, value, record):
+        text = record.get_transfer_window_thursday_schema_display()
+        if self._transfer_window_not_by_schema(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_transfer_window_friday_schema(self, value, record):
+        text = record.get_transfer_window_friday_schema_display()
+        if self._transfer_window_not_by_schema(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_transfer_window_saturday_schema(self, value, record):
+        text = record.get_transfer_window_saturday_schema_display()
+        if self._transfer_window_not_by_schema(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
+    def render_transfer_window_sunday_schema(self, value, record):
+        text = record.get_transfer_window_sunday_schema_display()
+        if self._transfer_window_not_by_schema(record):
+            return format_html('<s>{}</s>', text)
+        return text
+
     def _run_automatically_disabled(self, record):
-        return record.run_automatically == 'false'
+        return record.mode != 'periodic' or record.run_automatically == 'false'
 
     def render_schedule_daily_time(self, value, record):
         if self._run_automatically_disabled(record) or record.schedule_daily_enabled == 'false':
@@ -502,24 +437,22 @@ class BackupJobTable(NetBoxTable):
         return format_html('<a href="{}">{}</a>', value.get_absolute_url(), value)
 
     class Meta(NetBoxTable.Meta):
-        model = BackupJob
+        model = BackupCopyJob
         fields = (
-            'pk', 'id', 'name', 'status', 'jobtype', 'platform', 'job_creation_time', 'last_backup_end_time', 'last_backup_result', 'description', 'backup_server_name', 'backup_server_ip', 'target', 'virtual_machines', 'virtual_machine_count',
-            'copy_jobs',
-            'algorithm', 'enable_deduplication', 'storage_encryption_enabled',
-            'retain_days_to_keep', 'retain_cycles',
+            'pk', 'id', 'name', 'status', 'mode', 'data_transfer_mode', 'jobtype', 'job_creation_time',
+            'last_backup_result', 'description',
+            'backup_server_name', 'backup_server_ip',
+            'retain_days_to_keep', 'target', 'backup_jobs',
+            'enable_deduplication', 'storage_encryption_enabled', 'transaction_log_copy_enabled',
             'enable_deleted_vm_data_retention', 'retain_days_to_keep_deleted_vm_data',
-            'transform_full_to_synthetic', 'transform_to_synthetic_full',
-            'transform_to_synthetic_kind', 'transform_to_synthetic_days',
-            'synthetic_full_day_number_in_month', 'synthetic_full_day_of_week',
-            'transform_to_synthetic_monthly',
-            'enable_full_backup', 'full_backup_schedule_kind',
-            'full_backup_days', 'full_backup_day_number_in_month', 'full_backup_day_of_week',
-            'full_backup_months',
             'enable_gfs',
             'weekly_enabled', 'weekly_keep_backups_for', 'weekly_keep_backups_on_day_of_week',
             'monthly_enabled', 'monthly_keep_backups_for', 'monthly_keep_backups_week_of_month',
             'yearly_enabled', 'yearly_keep_backups_for', 'yearly_keep_backups_on_month_of_year',
+            'transfer_window',
+            'transfer_window_monday_schema', 'transfer_window_tuesday_schema', 'transfer_window_wednesday_schema',
+            'transfer_window_thursday_schema', 'transfer_window_friday_schema', 'transfer_window_saturday_schema',
+            'transfer_window_sunday_schema',
             'run_automatically',
             'schedule_daily_enabled', 'schedule_daily_time', 'schedule_daily_kind', 'schedule_daily_days',
             'schedule_monthly_enabled', 'schedule_monthly_time', 'schedule_monthly_day_of_week',
@@ -531,21 +464,8 @@ class BackupJobTable(NetBoxTable):
             'schedule_periodically_friday_schema', 'schedule_periodically_saturday_schema',
             'schedule_periodically_sunday_schema',
             'after_job_enabled', 'after_job_name',
-            'comments', 'tags', 'created', 'last_updated', 'actions',
+            'tags', 'created', 'last_updated', 'actions',
         )
         default_columns = (
-            'pk', 'name', 'status', 'jobtype', 'platform', 'last_backup_result', 'description', 'virtual_machines', 'virtual_machine_count',
+            'pk', 'name', 'status', 'mode', 'jobtype', 'last_backup_result', 'description',
         )
-
-
-# ========================
-# virtualization model table columns
-# ========================
-
-### Add Backupjob column to Virtual Machine tables.
-backupjob_column = columns.ManyToManyColumn(
-    verbose_name=_('Backup Jobs'),
-    linkify_item=True,
-)
-
-register_table_column(backupjob_column, 'backup_jobs', VirtualMachineTable)

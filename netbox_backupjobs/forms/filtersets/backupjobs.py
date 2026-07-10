@@ -1,5 +1,9 @@
 __all__ = ('BackupJobFilterForm',)
 
+
+def select_all_widget():
+    """A SelectMultiple widget with a 'Select all' button (see selectall.js)."""
+    return forms.SelectMultiple(attrs={'class': 'netbox-backupjobs-select-all'})
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
@@ -48,32 +52,32 @@ class BackupJobFilterForm(NetBoxModelFilterSetForm):
     fieldsets = (
         FieldSet(
             'q', 'name','description', 'status', 'jobtype', 'platform', 'job_creation_time_after', 'job_creation_time_before',
-            'LastBackupEndTime_after', 'LastBackupEndTime_before', 'LastBackupResult',
+            'last_backup_end_time_after', 'last_backup_end_time_before', 'last_backup_result',
             'backup_server_name', 'backup_server_ip', 'target',
             'has_virtual_machines', 'has_powered_off_vms', 'virtual_machine', name=_('Backup Job'),
         ),
         FieldSet(
-            'Algorithm', 'EnableDeduplication', 'StorageEncryptionEnabled', 'EnableDeletedVmDataRetention',
+            'algorithm', 'enable_deduplication', 'storage_encryption_enabled', 'enable_deleted_vm_data_retention',
             name=_('Advanced Settings'),
         ),
         FieldSet(
-            'TransformFullToSynthetic', 'TransformToSyntheticFull', 'TransformToSyntheticKind',
+            'transform_full_to_synthetic', 'transform_to_synthetic_full', 'transform_to_synthetic_kind',
             name=_('Synthetic Full Backup'),
         ),
         FieldSet(
-            'EnableFullBackup', 'FullBackupScheduleKind',
+            'enable_full_backup', 'full_backup_schedule_kind',
             name=_('Active Full Backup'),
         ),
         FieldSet(
-            'EnableGFS', 'WeeklyEnabled', 'MonthlyEnabled', 'YearlyEnabled',
+            'enable_gfs', 'weekly_enabled', 'monthly_enabled', 'yearly_enabled',
             name=_('GFS Retention'),
         ),
         FieldSet(
-            'RunAutomatically', 'ScheduleDailyEnabled', 'ScheduleDailyKind',
-            'ScheduleMonthlyEnabled', 'ScheduleMonthlyDayOfWeek', 'ScheduleMonthlyDayNumberInMonth',
-            'ScheduleMonthlyDayOfMonth',
-            'SchedulePeriodicallyEnabled', 'SchedulePeriodicallyUnit',
-            'AfterJobEnabled', 'AfterJobName',
+            'run_automatically', 'schedule_daily_enabled', 'schedule_daily_kind',
+            'schedule_monthly_enabled', 'schedule_monthly_day_of_week', 'schedule_monthly_day_number_in_month',
+            'schedule_monthly_day_of_month',
+            'schedule_periodically_enabled', 'schedule_periodically_unit',
+            'after_job_enabled', 'after_job_name',
             name=_('Schedule Options'),
         ),
         FieldSet('tag', name=_('Tags')),
@@ -89,6 +93,7 @@ class BackupJobFilterForm(NetBoxModelFilterSetForm):
     status = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobStatusChoices,
+        widget=select_all_widget(),
         label='Status',
     )
     target = forms.CharField(
@@ -102,6 +107,7 @@ class BackupJobFilterForm(NetBoxModelFilterSetForm):
     platform = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobPlatformChoices,
+        widget=select_all_widget(),
         label=_('Platform'),
     )
     job_creation_time_after = forms.DateTimeField(
@@ -114,19 +120,20 @@ class BackupJobFilterForm(NetBoxModelFilterSetForm):
         label=_('Job Creation Time Before'),
         widget=DateTimePicker(),
     )
-    LastBackupEndTime_after = forms.DateTimeField(
+    last_backup_end_time_after = forms.DateTimeField(
         required=False,
         label=_('Last Backup End Time After'),
         widget=DateTimePicker(),
     )
-    LastBackupEndTime_before = forms.DateTimeField(
+    last_backup_end_time_before = forms.DateTimeField(
         required=False,
         label=_('Last Backup End Time Before'),
         widget=DateTimePicker(),
     )
-    LastBackupResult = forms.MultipleChoiceField(
+    last_backup_result = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobResultChoices,
+        widget=select_all_widget(),
         label=_('Last Backup Result'),
     )
     description = forms.CharField(
@@ -160,132 +167,155 @@ class BackupJobFilterForm(NetBoxModelFilterSetForm):
     tag = TagFilterField(BackupJob)
 
     # Advanced settings
-    Algorithm = forms.MultipleChoiceField(
+    algorithm = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobAlgorithmChoices,
+        widget=select_all_widget(),
         label=_('Algorithm'),
     )
-    EnableDeduplication = forms.MultipleChoiceField(
+    enable_deduplication = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobEnableDeduplicationChoices,
+        widget=select_all_widget(),
         label=_('Deduplication'),
     )
-    StorageEncryptionEnabled = forms.MultipleChoiceField(
+    storage_encryption_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobStorageEncryptionEnabledChoices,
+        widget=select_all_widget(),
         label=_('Storage Encryption'),
     )
-    EnableDeletedVmDataRetention = forms.MultipleChoiceField(
+    enable_deleted_vm_data_retention = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobEnableDeletedVmDataRetentionChoices,
+        widget=select_all_widget(),
         label=_('Deleted VM Retention'),
     )
 
     # Synthetic full backup settings
-    TransformFullToSynthetic = forms.MultipleChoiceField(
+    transform_full_to_synthetic = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobEnableSyntheticFullForIncrementalChoices,
+        widget=select_all_widget(),
         label=_('Synthetic Full (Incremental)'),
     )
-    TransformToSyntheticFull = forms.MultipleChoiceField(
+    transform_to_synthetic_full = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobEnableSyntheticFullForReverseIncrementalChoices,
+        widget=select_all_widget(),
         label=_('Synthetic Full (Reverse Incr.)'),
     )
-    TransformToSyntheticKind = forms.MultipleChoiceField(
+    transform_to_synthetic_kind = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobSyntheticFullChoices,
+        widget=select_all_widget(),
         label=_('Synthetic Full Kind'),
     )
 
     # Active full backup settings
-    EnableFullBackup = forms.MultipleChoiceField(
+    enable_full_backup = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobEnableFullBackupChoices,
+        widget=select_all_widget(),
         label=_('Active Full Backup'),
     )
-    FullBackupScheduleKind = forms.MultipleChoiceField(
+    full_backup_schedule_kind = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobFullBackupScheduleKindChoices,
+        widget=select_all_widget(),
         label=_('Full Backup Kind'),
     )
 
     # GFS retention settings
-    EnableGFS = forms.MultipleChoiceField(
+    enable_gfs = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobGFSEnableChoices,
+        widget=select_all_widget(),
         label=_('GFS Enabled'),
     )
-    WeeklyEnabled = forms.MultipleChoiceField(
+    weekly_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobGFSWeeklyEnabledChoices,
+        widget=select_all_widget(),
         label=_('GFS Weekly'),
     )
-    MonthlyEnabled = forms.MultipleChoiceField(
+    monthly_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobGFSMonthlyEnabledChoices,
+        widget=select_all_widget(),
         label=_('GFS Monthly'),
     )
-    YearlyEnabled = forms.MultipleChoiceField(
+    yearly_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobGFSYearlyEnabledChoices,
+        widget=select_all_widget(),
         label=_('GFS Yearly'),
     )
 
     # Schedule options
-    RunAutomatically = forms.MultipleChoiceField(
+    run_automatically = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobRunAutomaticallyChoices,
+        widget=select_all_widget(),
         label=_('Run Automatically'),
     )
-    ScheduleDailyEnabled = forms.MultipleChoiceField(
+    schedule_daily_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobScheduleDailyEnabledChoices,
+        widget=select_all_widget(),
         label=_('Daily Enabled'),
     )
-    ScheduleDailyKind = forms.MultipleChoiceField(
+    schedule_daily_kind = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobScheduleDailyKindChoices,
+        widget=select_all_widget(),
         label=_('Daily Kind'),
     )
-    ScheduleMonthlyEnabled = forms.MultipleChoiceField(
+    schedule_monthly_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobScheduleMonthlyEnabledChoices,
+        widget=select_all_widget(),
         label=_('Monthly Enabled'),
     )
-    ScheduleMonthlyDayOfWeek = forms.MultipleChoiceField(
+    schedule_monthly_day_of_week = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobScheduleMonthlyDayOfWeekChoices,
+        widget=select_all_widget(),
         label=_('Monthly Day of Week'),
     )
-    ScheduleMonthlyDayNumberInMonth = forms.MultipleChoiceField(
+    schedule_monthly_day_number_in_month = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobScheduleMonthlyDayNumberInMonthChoices,
+        widget=select_all_widget(),
         label=_('Monthly Day number of Month'),
     )
-    ScheduleMonthlyDayOfMonth = forms.MultipleChoiceField(
+    schedule_monthly_day_of_month = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobScheduleDayOfMonthChoices,
+        widget=select_all_widget(),
         label=_('Monthly Day of Month'),
     )
-    SchedulePeriodicallyEnabled = forms.MultipleChoiceField(
+    schedule_periodically_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobPeriodicallyEnabledChoices,
+        widget=select_all_widget(),
         label=_('Periodically Enabled'),
     )
-    SchedulePeriodicallyUnit = forms.MultipleChoiceField(
+    schedule_periodically_unit = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobPeriodicallyUnitChoices,
+        widget=select_all_widget(),
         label=_('Periodically Unit'),
     )
 
     # After job
-    AfterJobEnabled = forms.MultipleChoiceField(
+    after_job_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupJobAfterJobEnabledChoices,
+        widget=select_all_widget(),
         label=_('After Job Enabled'),
     )
-    AfterJobName = DynamicModelMultipleChoiceField(
+    after_job_name = DynamicModelMultipleChoiceField(
         queryset=BackupJob.objects.all(),
         required=False,
         label=_('After Job'),

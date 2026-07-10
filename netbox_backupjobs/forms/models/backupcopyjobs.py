@@ -2,57 +2,47 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from netbox.forms import NetBoxModelForm
-from netbox_backupjobs.models import BackupJob
-from utilities.forms.rendering import FieldSet
-from ...choices import (
-    BackupJobPlatformChoices,
-    BackupJobStatusChoices,
-    BackupJobResultChoices,
-    BackupJobAlgorithmChoices,
-    BackupJobEnableDeduplicationChoices,
-    BackupJobStorageEncryptionEnabledChoices,
-    BackupJobEnableDeletedVmDataRetentionChoices,
-    BackupJobEnableSyntheticFullForIncrementalChoices,
-    BackupJobEnableSyntheticFullForReverseIncrementalChoices,
-    BackupJobSyntheticFullChoices,
-    BackupJobSyntheticFullDaysChoices,
-    BackupJobSyntheticFullWeekChoices,
-    BackupJobSyntheticFullMonthChoices,
-    BackupJobEnableFullBackupChoices,
-    BackupJobFullBackupScheduleKindChoices,
-    BackupJobFullBackupDaysChoices,
-    BackupJobFullBackupWeekChoices,
-    BackupJobFullBackupMonthChoices,
-    BackupJobGFSEnableChoices,
-    BackupJobGFSWeeklyEnabledChoices,
-    BackupJobGFSWeeklyDayChoices,
-    BackupJobGFSMonthlyEnabledChoices,
-    BackupJobGFSWeekOfMonthChoices,
-    BackupJobGFSYearlyEnabledChoices,
-    BackupJobGFSMonthOfYearChoices,
-    BackupJobRunAutomaticallyChoices,
-    BackupJobScheduleDailyEnabledChoices,
-    BackupJobScheduleDailyKindChoices,
-    BackupJobScheduleDaysChoices,
-    BackupJobScheduleMonthlyEnabledChoices,
-    BackupJobScheduleMonthlyDayOfWeekChoices,
-    BackupJobScheduleDayOfMonthChoices,
-    BackupJobScheduleMonthChoices,
-    BackupJobPeriodicallyEnabledChoices,
-    BackupJobPeriodicallyUnitChoices,
-    BackupJobAfterJobEnabledChoices,
-    BackupJobScheduleMonthlyDayNumberInMonthChoices,
-    BackupJobScheduleHourChoices,
-)
+from ipam.models import IPAddress
+from netbox_backupjobs.models import BackupJob, BackupCopyJob
+from netbox_backupjobs.models.backupcopyjobs import default_transfer_window_all_hours
 from utilities.forms.fields import DynamicModelChoiceField, DynamicModelMultipleChoiceField
+from utilities.forms.rendering import FieldSet
 from utilities.forms.utils import add_blank_choice
 from utilities.forms.widgets import DateTimePicker, TimePicker
-
-from ipam.models import IPAddress
-from virtualization.models import VirtualMachine
+from ...choices import (
+    BackupCopyJobStatusChoices,
+    BackupCopyJobResultChoices,
+    BackupCopyJobModeChoices,
+    BackupCopyJobEnableDeduplicationChoices,
+    BackupCopyJobStorageEncryptionEnabledChoices,
+    BackupCopyJobEnableDeletedVmDataRetentionChoices,
+    BackupCopyJobGFSEnableChoices,
+    BackupCopyJobGFSWeeklyEnabledChoices,
+    BackupCopyJobGFSWeeklyDayChoices,
+    BackupCopyJobGFSMonthlyEnabledChoices,
+    BackupCopyJobGFSWeekOfMonthChoices,
+    BackupCopyJobGFSYearlyEnabledChoices,
+    BackupCopyJobGFSMonthOfYearChoices,
+    BackupCopyJobDataTransferModeChoices,
+    BackupCopyJobTransactionLogCopyEnabledChoices,
+    BackupCopyJobTransferWindowChoices,
+    BackupCopyJobScheduleHourChoices,
+    BackupCopyJobRunAutomaticallyChoices,
+    BackupCopyJobScheduleDailyEnabledChoices,
+    BackupCopyJobScheduleDailyKindChoices,
+    BackupCopyJobScheduleDaysChoices,
+    BackupCopyJobScheduleMonthlyEnabledChoices,
+    BackupCopyJobScheduleMonthlyDayNumberInMonthChoices,
+    BackupCopyJobScheduleMonthlyDayOfWeekChoices,
+    BackupCopyJobScheduleDayOfMonthChoices,
+    BackupCopyJobScheduleMonthChoices,
+    BackupCopyJobPeriodicallyEnabledChoices,
+    BackupCopyJobPeriodicallyUnitChoices,
+    BackupCopyJobAfterJobEnabledChoices,
+)
 
 __all__ = (
-    'BackupJobForm',
+    'BackupCopyJobForm',
 )
 
 
@@ -61,38 +51,28 @@ def select_all_widget():
     return forms.SelectMultiple(attrs={'class': 'netbox-backupjobs-select-all'})
 
 
-class BackupJobForm(NetBoxModelForm):
+class BackupCopyJobForm(NetBoxModelForm):
     """
-    Form for creating and editing BackupJob objects.
+    Form for creating and editing BackupCopyJob objects.
     """
     name = forms.CharField()
     status = forms.ChoiceField(
-        choices=BackupJobStatusChoices,
+        choices=BackupCopyJobStatusChoices,
         required=True,
+    )
+    mode = forms.ChoiceField(
+        choices=BackupCopyJobModeChoices,
+        required=True,
+        label=_('Copy Mode'),
+    )
+    data_transfer_mode = forms.ChoiceField(
+        choices=BackupCopyJobDataTransferModeChoices,
+        required=True,
+        label=_('Data Transfer Mode'),
     )
     jobtype = forms.CharField(
         required=False,
         label=_('Job Type'),
-    )
-    platform = forms.ChoiceField(
-        choices=add_blank_choice(BackupJobPlatformChoices),
-        required=False,
-        label=_('Platform'),
-    )
-    job_creation_time = forms.DateTimeField(
-        required=False,
-        label=_('Job Creation Time'),
-        widget=DateTimePicker(),
-    )
-    last_backup_end_time = forms.DateTimeField(
-        required=False,
-        label=_('Last Backup End Time'),
-        widget=DateTimePicker(),
-    )
-    last_backup_result = forms.ChoiceField(
-        choices=add_blank_choice(BackupJobResultChoices),
-        required=False,
-        label=_('Last Backup Result'),
     )
     description = forms.CharField(
         required=False,
@@ -110,45 +90,50 @@ class BackupJobForm(NetBoxModelForm):
         required=False,
         label=_('Backup Server IP'),
     )
-    target = forms.CharField(
+    job_creation_time = forms.DateTimeField(
         required=False,
-        label=_('Target'),
+        label=_('Job Creation Time'),
+        widget=DateTimePicker(),
     )
-    virtual_machines = DynamicModelMultipleChoiceField(
-        queryset=VirtualMachine.objects.all(),
+    last_backup_result = forms.ChoiceField(
+        choices=add_blank_choice(BackupCopyJobResultChoices),
         required=False,
-        label="Virtual Machines",
-        help_text='The virtual machines associated with this backup job',
-    )
-
-    # Advanced job settings
-    algorithm = forms.ChoiceField(
-        choices=BackupJobAlgorithmChoices,
-        required=True,
-        label=_('Algorithm'),
-    )
-    enable_deduplication = forms.ChoiceField(
-        choices=BackupJobEnableDeduplicationChoices,
-        required=True,
-        label=_('Enable Deduplication'),
-    )
-    storage_encryption_enabled = forms.ChoiceField(
-        choices=BackupJobStorageEncryptionEnabledChoices,
-        required=True,
-        label=_('Enable Storage Encryption'),
+        label=_('Last Backup Result'),
     )
     retain_days_to_keep = forms.IntegerField(
         required=False,
         min_value=1,
         label=_('Retain Days to Keep'),
     )
-    retain_cycles = forms.IntegerField(
+    target = forms.CharField(
         required=False,
-        min_value=1,
-        label=_('Retain Cycles'),
+        label=_('Target'),
+    )
+    backup_jobs = DynamicModelMultipleChoiceField(
+        queryset=BackupJob.objects.all(),
+        required=False,
+        label=_('Backup Jobs'),
+        help_text=_('The backup job(s) that this copy job is associated with'),
+    )
+
+    # Advanced settings
+    enable_deduplication = forms.ChoiceField(
+        choices=BackupCopyJobEnableDeduplicationChoices,
+        required=True,
+        label=_('Enable Deduplication'),
+    )
+    storage_encryption_enabled = forms.ChoiceField(
+        choices=BackupCopyJobStorageEncryptionEnabledChoices,
+        required=True,
+        label=_('Enable Storage Encryption'),
+    )
+    transaction_log_copy_enabled = forms.ChoiceField(
+        choices=BackupCopyJobTransactionLogCopyEnabledChoices,
+        required=True,
+        label=_('Enable Transaction Log Copy'),
     )
     enable_deleted_vm_data_retention = forms.ChoiceField(
-        choices=BackupJobEnableDeletedVmDataRetentionChoices,
+        choices=BackupCopyJobEnableDeletedVmDataRetentionChoices,
         required=True,
         label=_('Enable Deleted VM Data Retention'),
     )
@@ -158,87 +143,14 @@ class BackupJobForm(NetBoxModelForm):
         label=_('Retain Days to Keep Deleted VM Data'),
     )
 
-    # Synthetic full backup settings
-    transform_full_to_synthetic = forms.ChoiceField(
-        choices=BackupJobEnableSyntheticFullForIncrementalChoices,
-        required=True,
-        label=_('Transform Incremental to Synthetic Full'),
-    )
-    transform_to_synthetic_full = forms.ChoiceField(
-        choices=BackupJobEnableSyntheticFullForReverseIncrementalChoices,
-        required=True,
-        label=_('Transform Reverse Incremental to Synthetic Full'),
-    )
-    transform_to_synthetic_kind = forms.ChoiceField(
-        choices=BackupJobSyntheticFullChoices,
-        required=False,
-        label=_('Synthetic Full Kind'),
-    )
-    transform_to_synthetic_days = forms.MultipleChoiceField(
-        choices=BackupJobSyntheticFullDaysChoices,
-        required=False,
-        widget=select_all_widget(),
-        label=_('Synthetic Full Days of Week'),
-    )
-    synthetic_full_day_number_in_month = forms.ChoiceField(
-        choices=BackupJobSyntheticFullWeekChoices,
-        required=False,
-        label=_('Synthetic Full Week of Month'),
-    )
-    synthetic_full_day_of_week = forms.ChoiceField(
-        choices=BackupJobSyntheticFullDaysChoices,
-        required=False,
-        label=_('Synthetic Full Day of Week (Monthly)'),
-    )
-    transform_to_synthetic_monthly = forms.MultipleChoiceField(
-        choices=BackupJobSyntheticFullMonthChoices,
-        required=False,
-        widget=select_all_widget(),
-        label=_('Synthetic Full Months'),
-    )
-
-    # Active full backup settings
-    enable_full_backup = forms.ChoiceField(
-        choices=BackupJobEnableFullBackupChoices,
-        required=True,
-        label=_('Enable Active Full Backup'),
-    )
-    full_backup_schedule_kind = forms.ChoiceField(
-        choices=BackupJobFullBackupScheduleKindChoices,
-        required=False,
-        label=_('Schedule Kind'),
-    )
-    full_backup_days = forms.MultipleChoiceField(
-        choices=BackupJobFullBackupDaysChoices,
-        required=False,
-        widget=select_all_widget(),
-        label=_('Days of Week'),
-    )
-    full_backup_day_number_in_month = forms.ChoiceField(
-        choices=BackupJobFullBackupWeekChoices,
-        required=False,
-        label=_('Week of Month'),
-    )
-    full_backup_day_of_week = forms.ChoiceField(
-        choices=BackupJobFullBackupDaysChoices,
-        required=False,
-        label=_('Day of Week (Monthly)'),
-    )
-    full_backup_months = forms.MultipleChoiceField(
-        choices=BackupJobFullBackupMonthChoices,
-        required=False,
-        widget=select_all_widget(),
-        label=_('Months'),
-    )
-
     # GFS retention settings
     enable_gfs = forms.ChoiceField(
-        choices=BackupJobGFSEnableChoices,
+        choices=BackupCopyJobGFSEnableChoices,
         required=True,
         label=_('Enable GFS'),
     )
     weekly_enabled = forms.ChoiceField(
-        choices=BackupJobGFSWeeklyEnabledChoices,
+        choices=BackupCopyJobGFSWeeklyEnabledChoices,
         required=True,
         label=_('Weekly Enabled'),
     )
@@ -248,12 +160,12 @@ class BackupJobForm(NetBoxModelForm):
         label=_('Weekly Keep (weeks)'),
     )
     weekly_keep_backups_on_day_of_week = forms.ChoiceField(
-        choices=BackupJobGFSWeeklyDayChoices,
+        choices=BackupCopyJobGFSWeeklyDayChoices,
         required=False,
         label=_('Weekly Day'),
     )
     monthly_enabled = forms.ChoiceField(
-        choices=BackupJobGFSMonthlyEnabledChoices,
+        choices=BackupCopyJobGFSMonthlyEnabledChoices,
         required=True,
         label=_('Monthly Enabled'),
     )
@@ -263,12 +175,12 @@ class BackupJobForm(NetBoxModelForm):
         label=_('Monthly Keep (months)'),
     )
     monthly_keep_backups_week_of_month = forms.ChoiceField(
-        choices=BackupJobGFSWeekOfMonthChoices,
+        choices=BackupCopyJobGFSWeekOfMonthChoices,
         required=False,
         label=_('Monthly Week'),
     )
     yearly_enabled = forms.ChoiceField(
-        choices=BackupJobGFSYearlyEnabledChoices,
+        choices=BackupCopyJobGFSYearlyEnabledChoices,
         required=True,
         label=_('Yearly Enabled'),
     )
@@ -278,19 +190,75 @@ class BackupJobForm(NetBoxModelForm):
         label=_('Yearly Keep (years)'),
     )
     yearly_keep_backups_on_month_of_year = forms.ChoiceField(
-        choices=BackupJobGFSMonthOfYearChoices,
+        choices=BackupCopyJobGFSMonthOfYearChoices,
         required=False,
         label=_('Yearly Month'),
     )
 
     # Schedule options
+    transfer_window = forms.ChoiceField(
+        choices=BackupCopyJobTransferWindowChoices,
+        required=True,
+        label=_('Transfer Window'),
+    )
+    transfer_window_monday_schema = forms.MultipleChoiceField(
+        choices=BackupCopyJobScheduleHourChoices,
+        required=False,
+        initial=default_transfer_window_all_hours,
+        widget=select_all_widget(),
+        label=_('Monday Schema'),
+    )
+    transfer_window_tuesday_schema = forms.MultipleChoiceField(
+        choices=BackupCopyJobScheduleHourChoices,
+        required=False,
+        initial=default_transfer_window_all_hours,
+        widget=select_all_widget(),
+        label=_('Tuesday Schema'),
+    )
+    transfer_window_wednesday_schema = forms.MultipleChoiceField(
+        choices=BackupCopyJobScheduleHourChoices,
+        required=False,
+        initial=default_transfer_window_all_hours,
+        widget=select_all_widget(),
+        label=_('Wednesday Schema'),
+    )
+    transfer_window_thursday_schema = forms.MultipleChoiceField(
+        choices=BackupCopyJobScheduleHourChoices,
+        required=False,
+        initial=default_transfer_window_all_hours,
+        widget=select_all_widget(),
+        label=_('Thursday Schema'),
+    )
+    transfer_window_friday_schema = forms.MultipleChoiceField(
+        choices=BackupCopyJobScheduleHourChoices,
+        required=False,
+        initial=default_transfer_window_all_hours,
+        widget=select_all_widget(),
+        label=_('Friday Schema'),
+    )
+    transfer_window_saturday_schema = forms.MultipleChoiceField(
+        choices=BackupCopyJobScheduleHourChoices,
+        required=False,
+        initial=default_transfer_window_all_hours,
+        widget=select_all_widget(),
+        label=_('Saturday Schema'),
+    )
+    transfer_window_sunday_schema = forms.MultipleChoiceField(
+        choices=BackupCopyJobScheduleHourChoices,
+        required=False,
+        initial=default_transfer_window_all_hours,
+        widget=select_all_widget(),
+        label=_('Sunday Schema'),
+    )
+
+    # Schedule options (used when mode is periodic)
     run_automatically = forms.ChoiceField(
-        choices=BackupJobRunAutomaticallyChoices,
+        choices=BackupCopyJobRunAutomaticallyChoices,
         required=True,
         label=_('Run Automatically'),
     )
     schedule_daily_enabled = forms.ChoiceField(
-        choices=BackupJobScheduleDailyEnabledChoices,
+        choices=BackupCopyJobScheduleDailyEnabledChoices,
         required=True,
         label=_('Daily Enabled'),
     )
@@ -300,18 +268,18 @@ class BackupJobForm(NetBoxModelForm):
         widget=TimePicker(),
     )
     schedule_daily_kind = forms.ChoiceField(
-        choices=BackupJobScheduleDailyKindChoices,
+        choices=BackupCopyJobScheduleDailyKindChoices,
         required=False,
         label=_('Daily Kind'),
     )
     schedule_daily_days = forms.MultipleChoiceField(
-        choices=BackupJobScheduleDaysChoices,
+        choices=BackupCopyJobScheduleDaysChoices,
         required=False,
         widget=select_all_widget(),
         label=_('Daily Days'),
     )
     schedule_monthly_enabled = forms.ChoiceField(
-        choices=BackupJobScheduleMonthlyEnabledChoices,
+        choices=BackupCopyJobScheduleMonthlyEnabledChoices,
         required=True,
         label=_('Monthly Enabled'),
     )
@@ -321,28 +289,28 @@ class BackupJobForm(NetBoxModelForm):
         widget=TimePicker(),
     )
     schedule_monthly_day_of_week = forms.ChoiceField(
-        choices=BackupJobScheduleMonthlyDayOfWeekChoices,
+        choices=BackupCopyJobScheduleMonthlyDayOfWeekChoices,
         required=False,
         label=_('Monthly Day of Week'),
     )
     schedule_monthly_day_number_in_month = forms.ChoiceField(
-        choices=BackupJobScheduleMonthlyDayNumberInMonthChoices,
+        choices=BackupCopyJobScheduleMonthlyDayNumberInMonthChoices,
         required=False,
         label=_('Monthly Day number of Month'),
     )
     schedule_monthly_day_of_month = forms.ChoiceField(
-        choices=BackupJobScheduleDayOfMonthChoices,
+        choices=BackupCopyJobScheduleDayOfMonthChoices,
         required=False,
         label=_('Monthly Day of Month'),
     )
     schedule_monthly_months = forms.MultipleChoiceField(
-        choices=BackupJobScheduleMonthChoices,
+        choices=BackupCopyJobScheduleMonthChoices,
         required=False,
         widget=select_all_widget(),
         label=_('Monthly Months'),
     )
     schedule_periodically_enabled = forms.ChoiceField(
-        choices=BackupJobPeriodicallyEnabledChoices,
+        choices=BackupCopyJobPeriodicallyEnabledChoices,
         required=True,
         label=_('Periodically Enabled'),
     )
@@ -352,7 +320,7 @@ class BackupJobForm(NetBoxModelForm):
         label=_('Periodically Every'),
     )
     schedule_periodically_unit = forms.ChoiceField(
-        choices=BackupJobPeriodicallyUnitChoices,
+        choices=BackupCopyJobPeriodicallyUnitChoices,
         required=False,
         label=_('Periodically Unit'),
     )
@@ -364,85 +332,76 @@ class BackupJobForm(NetBoxModelForm):
         help_text=_('Offset in minutes applied to the start of each hour block in the day schemas below'),
     )
     schedule_periodically_monday_schema = forms.MultipleChoiceField(
-        choices=BackupJobScheduleHourChoices,
+        choices=BackupCopyJobScheduleHourChoices,
         required=False,
+        initial=default_transfer_window_all_hours,
         widget=select_all_widget(),
         label=_('Monday Schema'),
     )
     schedule_periodically_tuesday_schema = forms.MultipleChoiceField(
-        choices=BackupJobScheduleHourChoices,
+        choices=BackupCopyJobScheduleHourChoices,
         required=False,
+        initial=default_transfer_window_all_hours,
         widget=select_all_widget(),
         label=_('Tuesday Schema'),
     )
     schedule_periodically_wednesday_schema = forms.MultipleChoiceField(
-        choices=BackupJobScheduleHourChoices,
+        choices=BackupCopyJobScheduleHourChoices,
         required=False,
+        initial=default_transfer_window_all_hours,
         widget=select_all_widget(),
         label=_('Wednesday Schema'),
     )
     schedule_periodically_thursday_schema = forms.MultipleChoiceField(
-        choices=BackupJobScheduleHourChoices,
+        choices=BackupCopyJobScheduleHourChoices,
         required=False,
+        initial=default_transfer_window_all_hours,
         widget=select_all_widget(),
         label=_('Thursday Schema'),
     )
     schedule_periodically_friday_schema = forms.MultipleChoiceField(
-        choices=BackupJobScheduleHourChoices,
+        choices=BackupCopyJobScheduleHourChoices,
         required=False,
+        initial=default_transfer_window_all_hours,
         widget=select_all_widget(),
         label=_('Friday Schema'),
     )
     schedule_periodically_saturday_schema = forms.MultipleChoiceField(
-        choices=BackupJobScheduleHourChoices,
+        choices=BackupCopyJobScheduleHourChoices,
         required=False,
+        initial=default_transfer_window_all_hours,
         widget=select_all_widget(),
         label=_('Saturday Schema'),
     )
     schedule_periodically_sunday_schema = forms.MultipleChoiceField(
-        choices=BackupJobScheduleHourChoices,
+        choices=BackupCopyJobScheduleHourChoices,
         required=False,
+        initial=default_transfer_window_all_hours,
         widget=select_all_widget(),
         label=_('Sunday Schema'),
     )
-
-    # After job
     after_job_enabled = forms.ChoiceField(
-        choices=BackupJobAfterJobEnabledChoices,
+        choices=BackupCopyJobAfterJobEnabledChoices,
         required=True,
         label=_('After Job Enabled'),
     )
     after_job_name = DynamicModelChoiceField(
-        queryset=BackupJob.objects.all(),
+        queryset=BackupCopyJob.objects.all(),
         required=False,
         label=_('After Job'),
     )
 
     fieldsets = (
         FieldSet(
-            'name', 'description', 'status', 'jobtype', 'platform', 'job_creation_time', 'last_backup_end_time', 'last_backup_result', 'backup_server_name', 'backup_server_ip', 'target', 'virtual_machines', 'tags',
-            name=_('Backup Job'),
+            'name', 'description', 'status', 'mode', 'data_transfer_mode', 'jobtype', 'job_creation_time',
+            'last_backup_result', 'backup_server_name', 'backup_server_ip', 'retain_days_to_keep', 'target',
+            'backup_jobs', 'tags',
+            name=_('Backup Copy Job'),
         ),
         FieldSet(
-            'algorithm', 'enable_deduplication', 'storage_encryption_enabled',
-            'retain_days_to_keep', 'retain_cycles',
+            'enable_deduplication', 'storage_encryption_enabled', 'transaction_log_copy_enabled',
             'enable_deleted_vm_data_retention', 'retain_days_to_keep_deleted_vm_data',
             name=_('Advanced Settings'),
-        ),
-        FieldSet(
-            'transform_full_to_synthetic', 'transform_to_synthetic_full',
-            'transform_to_synthetic_kind',
-            'transform_to_synthetic_days',
-            'synthetic_full_day_number_in_month', 'synthetic_full_day_of_week',
-            'transform_to_synthetic_monthly',
-            name=_('Synthetic Full Backup'),
-        ),
-        FieldSet(
-            'enable_full_backup', 'full_backup_schedule_kind',
-            'full_backup_days',
-            'full_backup_day_number_in_month', 'full_backup_day_of_week',
-            'full_backup_months',
-            name=_('Active Full Backup'),
         ),
         FieldSet(
             'enable_gfs',
@@ -452,6 +411,13 @@ class BackupJobForm(NetBoxModelForm):
             name=_('GFS Retention'),
         ),
         FieldSet(
+            'transfer_window',
+            'transfer_window_monday_schema', 'transfer_window_tuesday_schema', 'transfer_window_wednesday_schema',
+            'transfer_window_thursday_schema', 'transfer_window_friday_schema', 'transfer_window_saturday_schema',
+            'transfer_window_sunday_schema',
+            name=_('Schedule Options when Mode is Immediate'),
+        ),
+        FieldSet(
             'run_automatically',
             'schedule_daily_enabled', 'schedule_daily_time', 'schedule_daily_kind', 'schedule_daily_days',
             'schedule_monthly_enabled', 'schedule_monthly_time', 'schedule_monthly_day_of_week',
@@ -463,28 +429,26 @@ class BackupJobForm(NetBoxModelForm):
             'schedule_periodically_friday_schema', 'schedule_periodically_saturday_schema',
             'schedule_periodically_sunday_schema',
             'after_job_enabled', 'after_job_name',
-            name=_('Schedule Options'),
+            name=_('Schedule Options when Mode is Periodic'),
         ),
     )
 
     class Meta:
-        model = BackupJob
+        model = BackupCopyJob
         fields = [
-            'name', 'status', 'jobtype', 'platform', 'job_creation_time', 'last_backup_end_time', 'last_backup_result', 'description', 'backup_server_name', 'backup_server_ip', 'target', 'virtual_machines', 'comments', 'tags',
-            'algorithm', 'enable_deduplication', 'storage_encryption_enabled',
-            'retain_days_to_keep', 'retain_cycles',
+            'name', 'description', 'status', 'mode', 'data_transfer_mode', 'jobtype', 'job_creation_time',
+            'last_backup_result', 'backup_server_name', 'backup_server_ip', 'retain_days_to_keep', 'target',
+            'backup_jobs',
+            'enable_deduplication', 'storage_encryption_enabled', 'transaction_log_copy_enabled',
             'enable_deleted_vm_data_retention', 'retain_days_to_keep_deleted_vm_data',
-            'transform_full_to_synthetic', 'transform_to_synthetic_full',
-            'transform_to_synthetic_kind', 'transform_to_synthetic_days',
-            'synthetic_full_day_number_in_month', 'synthetic_full_day_of_week',
-            'transform_to_synthetic_monthly',
-            'enable_full_backup', 'full_backup_schedule_kind',
-            'full_backup_days', 'full_backup_day_number_in_month', 'full_backup_day_of_week',
-            'full_backup_months',
             'enable_gfs',
             'weekly_enabled', 'weekly_keep_backups_for', 'weekly_keep_backups_on_day_of_week',
             'monthly_enabled', 'monthly_keep_backups_for', 'monthly_keep_backups_week_of_month',
             'yearly_enabled', 'yearly_keep_backups_for', 'yearly_keep_backups_on_month_of_year',
+            'transfer_window',
+            'transfer_window_monday_schema', 'transfer_window_tuesday_schema', 'transfer_window_wednesday_schema',
+            'transfer_window_thursday_schema', 'transfer_window_friday_schema', 'transfer_window_saturday_schema',
+            'transfer_window_sunday_schema',
             'run_automatically',
             'schedule_daily_enabled', 'schedule_daily_time', 'schedule_daily_kind', 'schedule_daily_days',
             'schedule_monthly_enabled', 'schedule_monthly_time', 'schedule_monthly_day_of_week',
@@ -496,6 +460,5 @@ class BackupJobForm(NetBoxModelForm):
             'schedule_periodically_friday_schema', 'schedule_periodically_saturday_schema',
             'schedule_periodically_sunday_schema',
             'after_job_enabled', 'after_job_name',
+            'tags',
         ]
-
-

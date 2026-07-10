@@ -1,0 +1,46 @@
+- name: Test-Backup-Job-01
+  jobtype: Backup
+  platform: vmware
+  status: enabled
+  description: Full example covering retention, GFS and schedule settings
+  target: Backup Repository 01
+  algorithm: incremental
+  enable_deduplication: 'true'
+  storage_encryption_enabled: 'true'
+  retain_days_to_keep: 14
+  retain_cycles: 7
+  enable_deleted_vm_data_retention: 'true'
+  retain_days_to_keep_deleted_vm_data: 30
+  enable_gfs: 'true'
+  weekly_enabled: 'true'
+  weekly_keep_backups_for: 4
+  weekly_keep_backups_on_day_of_week: sunday
+  monthly_enabled: 'true'
+  monthly_keep_backups_for: 12
+  monthly_keep_backups_week_of_month: first
+  yearly_enabled: 'false'
+  run_automatically: 'true'
+  schedule_daily_enabled: 'true'
+  schedule_daily_time: '22:00:00'
+  schedule_daily_kind: everyday
+  comments: Imported via bulk import test template
+  id: 
+
+- name: Test-Backup-Job-02
+  jobtype: Backup
+  platform: hyper-v
+  status: enabled
+  description: Second job - used to test the backup_jobs link on the BackupCopyJob import
+  target: Backup Repository 02
+  algorithm: reverse incremental
+  enable_deduplication: 'true'
+  storage_encryption_enabled: 'false'
+  retain_days_to_keep: 7
+  retain_cycles: 14
+  enable_gfs: 'false'
+  run_automatically: 'true'
+  schedule_daily_enabled: 'true'
+  schedule_daily_time: '23:30:00'
+  schedule_daily_kind: everyday
+  comments: Imported via bulk import test template
+  id: 

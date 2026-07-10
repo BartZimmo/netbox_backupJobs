@@ -1,0 +1,358 @@
+{% extends 'generic/object.html' %}
+{% load helpers %}
+{% load plugins %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+  <li class="breadcrumb-item">
+    <a href="{% url 'plugins:netbox_backupjobs:backupcopyjob_list' %}">{% trans "Veeam BackupCopyJobs" %}</a>
+  </li>
+{% endblock breadcrumbs %}
+
+{% block content %}
+  <div class="row mb-3">
+    <div class="col col-md-6">
+
+      <div class="card">
+        <h5 class="card-header">{% trans "Backup Copy Job" %}</h5>
+        <table class="table table-hover attr-table">
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Name" %}</th>
+            <td>{{ object.name }}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Description" %}</th>
+            <td>{{ object.description|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Status" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_status_color }}">
+                {{ object.get_status_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Copy Mode" %}</th>
+            <td>{{ object.get_mode_display }}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Data Transfer Mode" %}</th>
+            <td>{{ object.get_data_transfer_mode_display }}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Job Type" %}</th>
+            <td>{{ object.jobtype|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Job Creation Time" %}</th>
+            <td>{{ object.job_creation_time|date:"Y-m-d H:i"|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Last Backup Result" %}</th>
+            <td>
+              {% if object.last_backup_result %}
+                <span class="badge text-bg-{{ object.get_last_backup_result_color }}">
+                  {{ object.get_last_backup_result_display }}
+                </span>
+              {% else %}
+                {{ ''|placeholder }}
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Backup Server" %}</th>
+            <td>{{ object.backup_server_display|linkify|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Backup Server IP" %}</th>
+            <td>{{ object.backup_server_ip|linkify|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Retain Days to Keep" %}</th>
+            <td>{{ object.retain_days_to_keep|placeholder }}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Target" %}</th>
+            <td>{{ object.target|placeholder }}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h5 class="card-header">{% trans "Advanced Settings" %}</h5>
+        <table class="table table-hover attr-table">
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Deduplication" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_enable_deduplication_color }}">
+                {{ object.get_enable_deduplication_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Storage Encryption" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_storage_encryption_enabled_color }}">
+                {{ object.get_storage_encryption_enabled_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Transaction Log Copy" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_transaction_log_copy_enabled_color }}">
+                {{ object.get_transaction_log_copy_enabled_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Deleted VM Data Retention" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_enable_deleted_vm_data_retention_color }}">
+                {{ object.get_enable_deleted_vm_data_retention_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Deleted VM Retain Days" %}</th>
+            <td>{% if object.enable_deleted_vm_data_retention == 'false' %}<s>{% endif %}{{ object.retain_days_to_keep_deleted_vm_data|placeholder }}{% if object.enable_deleted_vm_data_retention == 'false' %}</s>{% endif %}</td>
+          </tr>
+        </table>
+      </div>
+
+      {% include 'inc/panels/tags.html' %}
+      {% plugin_left_page object %}
+
+    </div>
+    <div class="col col-md-6">
+
+      <div class="card">
+        <h5 class="card-header">{% trans "Schedule Options when Mode is Immediate" %}</h5>
+        <table class="table table-hover attr-table">
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Transfer Window" %}</th>
+            <td>{% if object.mode != 'immediate' %}<s>{% endif %}{{ object.get_transfer_window_display }}{% if object.mode != 'immediate' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monday Schema" %}</th>
+            <td>{% if object.mode != 'immediate' or object.transfer_window != 'by_schema' %}<s>{% endif %}{{ object.get_transfer_window_monday_schema_display }}{% if object.mode != 'immediate' or object.transfer_window != 'by_schema' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Tuesday Schema" %}</th>
+            <td>{% if object.mode != 'immediate' or object.transfer_window != 'by_schema' %}<s>{% endif %}{{ object.get_transfer_window_tuesday_schema_display }}{% if object.mode != 'immediate' or object.transfer_window != 'by_schema' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Wednesday Schema" %}</th>
+            <td>{% if object.mode != 'immediate' or object.transfer_window != 'by_schema' %}<s>{% endif %}{{ object.get_transfer_window_wednesday_schema_display }}{% if object.mode != 'immediate' or object.transfer_window != 'by_schema' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Thursday Schema" %}</th>
+            <td>{% if object.mode != 'immediate' or object.transfer_window != 'by_schema' %}<s>{% endif %}{{ object.get_transfer_window_thursday_schema_display }}{% if object.mode != 'immediate' or object.transfer_window != 'by_schema' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Friday Schema" %}</th>
+            <td>{% if object.mode != 'immediate' or object.transfer_window != 'by_schema' %}<s>{% endif %}{{ object.get_transfer_window_friday_schema_display }}{% if object.mode != 'immediate' or object.transfer_window != 'by_schema' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Saturday Schema" %}</th>
+            <td>{% if object.mode != 'immediate' or object.transfer_window != 'by_schema' %}<s>{% endif %}{{ object.get_transfer_window_saturday_schema_display }}{% if object.mode != 'immediate' or object.transfer_window != 'by_schema' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Sunday Schema" %}</th>
+            <td>{% if object.mode != 'immediate' or object.transfer_window != 'by_schema' %}<s>{% endif %}{{ object.get_transfer_window_sunday_schema_display }}{% if object.mode != 'immediate' or object.transfer_window != 'by_schema' %}</s>{% endif %}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h5 class="card-header">{% trans "Schedule Options when Mode is Periodic" %}</h5>
+        <table class="table table-hover attr-table">
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Run Automatically" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_run_automatically_color }}">
+                {% if object.mode != 'periodic' %}<s>{% endif %}{{ object.get_run_automatically_display }}{% if object.mode != 'periodic' %}</s>{% endif %}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th colspan="2" class="pt-4 border-top text-uppercase text-muted small">{% trans "Daily Schedule" %}</th>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Daily Enabled" %}</th>
+            <td><span class="badge text-bg-{{ object.get_schedule_daily_enabled_color }}">{% if object.mode != 'periodic' or object.run_automatically == 'false' %}<s>{% endif %}{{ object.get_schedule_daily_enabled_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' %}</s>{% endif %}</span></td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Daily Time" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_daily_enabled == 'false' %}<s>{% endif %}{{ object.schedule_daily_time|time:"H:i"|placeholder }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_daily_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Daily Kind" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_daily_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_daily_kind_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_daily_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Daily Days" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_daily_enabled == 'false' or object.schedule_daily_kind != 'selected days' %}<s>{% endif %}{{ object.get_schedule_daily_days_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_daily_enabled == 'false' or object.schedule_daily_kind != 'selected days' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th colspan="2" class="pt-4 border-top text-uppercase text-muted small">{% trans "Monthly Schedule" %}</th>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Enabled" %}</th>
+            <td><span class="badge text-bg-{{ object.get_schedule_monthly_enabled_color }}">{% if object.mode != 'periodic' or object.run_automatically == 'false' %}<s>{% endif %}{{ object.get_schedule_monthly_enabled_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' %}</s>{% endif %}</span></td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Time" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' %}<s>{% endif %}{{ object.schedule_monthly_time|time:"H:i"|placeholder }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Day of Week" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' or object.schedule_monthly_day_number_in_month == 'this day' %}<s>{% endif %}{{ object.get_schedule_monthly_day_of_week_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' or object.schedule_monthly_day_number_in_month == 'this day' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Day number of Month" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_monthly_day_number_in_month_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Day of Month" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' or object.schedule_monthly_day_number_in_month != 'this day' %}<s>{% endif %}{{ object.get_schedule_monthly_day_of_month_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' or object.schedule_monthly_day_number_in_month != 'this day' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Months" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_monthly_months_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_monthly_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th colspan="2" class="pt-4 border-top text-uppercase text-muted small">{% trans "Periodically Schedule" %}</th>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Periodically Enabled" %}</th>
+            <td><span class="badge text-bg-{{ object.get_schedule_periodically_enabled_color }}">{% if object.mode != 'periodic' or object.run_automatically == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_enabled_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' %}</s>{% endif %}</span></td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Periodically Every" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.schedule_periodically_every|placeholder }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Periodically Unit" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_unit_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Hour Offset (min)" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.schedule_periodically_hour_offset_in_min|placeholder }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monday Schema" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_monday_schema_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Tuesday Schema" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_tuesday_schema_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Wednesday Schema" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_wednesday_schema_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Thursday Schema" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_thursday_schema_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Friday Schema" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_friday_schema_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Saturday Schema" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_saturday_schema_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Sunday Schema" %}</th>
+            <td>{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}<s>{% endif %}{{ object.get_schedule_periodically_sunday_schema_display }}{% if object.mode != 'periodic' or object.run_automatically == 'false' or object.schedule_periodically_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th colspan="2" class="pt-4 border-top text-uppercase text-muted small">{% trans "After Job Settings" %}</th>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "After Job Enabled" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_after_job_enabled_color }}">
+                {% if object.mode != 'periodic' %}<s>{% endif %}{{ object.get_after_job_enabled_display }}{% if object.mode != 'periodic' %}</s>{% endif %}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "After Job" %}</th>
+            <td>{% if object.mode != 'periodic' or object.after_job_enabled == 'false' %}<s>{% endif %}{{ object.after_job_name|linkify|placeholder }}{% if object.mode != 'periodic' or object.after_job_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h5 class="card-header">{% trans "GFS Retention" %}</h5>
+        <table class="table table-hover attr-table">
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "GFS Enabled" %}</th>
+            <td>
+              <span class="badge text-bg-{{ object.get_enable_gfs_color }}">
+                {{ object.get_enable_gfs_display }}
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <th colspan="2" class="pt-4 border-top text-uppercase text-muted small">{% trans "Weekly Retention" %}</th>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Weekly Enabled" %}</th>
+            <td>{% if object.enable_gfs == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_weekly_enabled_color }}">{{ object.get_weekly_enabled_display }}</span>{% if object.enable_gfs == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Weekly Keep (weeks)" %}</th>
+            <td>{% if object.enable_gfs == 'false' or object.weekly_enabled == 'false' %}<s>{% endif %}{{ object.weekly_keep_backups_for|placeholder }}{% if object.enable_gfs == 'false' or object.weekly_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Weekly Day" %}</th>
+            <td>{% if object.enable_gfs == 'false' or object.weekly_enabled == 'false' %}<s>{% endif %}{{ object.get_weekly_keep_backups_on_day_of_week_display }}{% if object.enable_gfs == 'false' or object.weekly_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th colspan="2" class="pt-4 border-top text-uppercase text-muted small">{% trans "Monthly Retention" %}</th>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Enabled" %}</th>
+            <td>{% if object.enable_gfs == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_monthly_enabled_color }}">{{ object.get_monthly_enabled_display }}</span>{% if object.enable_gfs == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Keep (months)" %}</th>
+            <td>{% if object.enable_gfs == 'false' or object.monthly_enabled == 'false' %}<s>{% endif %}{{ object.monthly_keep_backups_for|placeholder }}{% if object.enable_gfs == 'false' or object.monthly_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Monthly Week" %}</th>
+            <td>{% if object.enable_gfs == 'false' or object.monthly_enabled == 'false' %}<s>{% endif %}{{ object.get_monthly_keep_backups_week_of_month_display }}{% if object.enable_gfs == 'false' or object.monthly_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th colspan="2" class="pt-4 border-top text-uppercase text-muted small">{% trans "Yearly Retention" %}</th>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Yearly Enabled" %}</th>
+            <td>{% if object.enable_gfs == 'false' %}<s>{% endif %}<span class="badge text-bg-{{ object.get_yearly_enabled_color }}">{{ object.get_yearly_enabled_display }}</span>{% if object.enable_gfs == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Yearly Keep (years)" %}</th>
+            <td>{% if object.enable_gfs == 'false' or object.yearly_enabled == 'false' %}<s>{% endif %}{{ object.yearly_keep_backups_for|placeholder }}{% if object.enable_gfs == 'false' or object.yearly_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+          <tr>
+            <th scope="row" style="width: 220px;">{% trans "Yearly Month" %}</th>
+            <td>{% if object.enable_gfs == 'false' or object.yearly_enabled == 'false' %}<s>{% endif %}{{ object.get_yearly_keep_backups_on_month_of_year_display }}{% if object.enable_gfs == 'false' or object.yearly_enabled == 'false' %}</s>{% endif %}</td>
+          </tr>
+        </table>
+      </div>
+
+      {% include 'inc/panels/custom_fields.html' %}
+      {% plugin_right_page object %}
+    </div>
+  </div>
+  <div class="row mb-3">
+    <div class="col col-md-12">
+      {% plugin_full_width_page object %}
+    </div>
+  </div>
+{% endblock content %}
