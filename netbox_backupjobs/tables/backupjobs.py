@@ -1,6 +1,7 @@
 import django_tables2 as tables
 from django.urls import reverse
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from netbox.tables import NetBoxTable, columns
@@ -10,6 +11,8 @@ from netbox_backupjobs.models import BackupJob
 
 __all__ = (
     'BackupJobTable',
+    'VirtualMachineBackupJobsTable',
+    'BackupCopyJobBackupJobsTable',
 )
 
 
@@ -59,6 +62,7 @@ class BackupJobTable(NetBoxTable):
     virtual_machines = columns.ManyToManyColumn(
         verbose_name=_('Virtual Machines'),
         linkify_item=True,
+        separator=mark_safe('<br>'),
     )
     virtual_machine_count = tables.Column(
         verbose_name=_('VM Count'),
@@ -68,6 +72,7 @@ class BackupJobTable(NetBoxTable):
     copy_jobs = columns.ManyToManyColumn(
         verbose_name=_('Backup Copy Jobs'),
         linkify_item=True,
+        separator=mark_safe('<br>'),
     )
 
     # Advanced settings
@@ -538,6 +543,26 @@ class BackupJobTable(NetBoxTable):
         )
 
 
+class VirtualMachineBackupJobsTable(BackupJobTable):
+    """
+    Used on the VirtualMachine 'Backup Jobs' tab. A separate subclass so that column
+    visibility/ordering preferences there are independent from the main BackupJob list view,
+    since NetBox keys those preferences by table class name.
+    """
+    class Meta(BackupJobTable.Meta):
+        pass
+
+
+class BackupCopyJobBackupJobsTable(BackupJobTable):
+    """
+    Used on the BackupCopyJob 'Backup Jobs' tab. A separate subclass so that column
+    visibility/ordering preferences there are independent from the main BackupJob list view,
+    since NetBox keys those preferences by table class name.
+    """
+    class Meta(BackupJobTable.Meta):
+        pass
+
+
 # ========================
 # virtualization model table columns
 # ========================
@@ -546,6 +571,7 @@ class BackupJobTable(NetBoxTable):
 backupjob_column = columns.ManyToManyColumn(
     verbose_name=_('Backup Jobs'),
     linkify_item=True,
+    separator=mark_safe('<br>'),
 )
 
 register_table_column(backupjob_column, 'backup_jobs', VirtualMachineTable)

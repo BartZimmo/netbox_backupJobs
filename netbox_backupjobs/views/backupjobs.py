@@ -8,7 +8,7 @@ from virtualization.models import VirtualMachine
 from virtualization.tables import VirtualMachineTable
 
 from netbox_backupjobs.models import BackupJob, BackupCopyJob
-from netbox_backupjobs.tables.backupjobs import BackupJobTable
+from netbox_backupjobs.tables.backupjobs import BackupJobTable, VirtualMachineBackupJobsTable
 from netbox_backupjobs.tables.backupcopyjobs import BackupCopyJobTable
 from netbox_backupjobs.forms.models import BackupJobForm
 from netbox_backupjobs.forms.filtersets import BackupJobFilterForm
@@ -28,11 +28,12 @@ __all__ = (
     'BackupJobBulkDeleteView',
     'BackupJobVirtualMachinesView',
     'BackupJobCopyJobsView',
+    'VirtualMachineBackupJobsView',
 )
 
 
 #
-# BackupJobs
+# BackupJob basic views
 #
 
 @register_model_view(BackupJob)
@@ -69,6 +70,7 @@ class BackupJobDeleteView(generic.ObjectDeleteView):
     """
     queryset = BackupJob.objects.all()
 
+## Extra table for the VirtualMachine view to show all BackupJobs associated with a VM
 
 @register_model_view(BackupJob, 'virtual_machines')
 class BackupJobVirtualMachinesView(generic.ObjectChildrenView):
@@ -86,6 +88,8 @@ class BackupJobVirtualMachinesView(generic.ObjectChildrenView):
         return parent.virtual_machines.restrict(request.user, 'view').all()
 
 
+## Extra table for the BackupCopyJob view to show all BackupJobs associated with a BackupCopyJob
+
 @register_model_view(BackupJob, 'copy_jobs')
 class BackupJobCopyJobsView(generic.ObjectChildrenView):
     queryset = BackupJob.objects.all()
@@ -101,6 +105,27 @@ class BackupJobCopyJobsView(generic.ObjectChildrenView):
     def get_children(self, request, parent):
         return parent.copy_jobs.restrict(request.user, 'view').all()
 
+## Extra table for the BackupJob view to show all VirtualMachines associated with a BackupJob
+
+@register_model_view(VirtualMachine, 'backupjobs')
+class VirtualMachineBackupJobsView(generic.ObjectChildrenView):
+    queryset = VirtualMachine.objects.all()
+    child_model = BackupJob
+    table = VirtualMachineBackupJobsTable
+    tab = ViewTab(
+        label=_('Backup Jobs'),
+        badge=lambda obj: obj.backup_jobs.count(),
+        permission='netbox_backupjobs.view_backupjob',
+        weight=5000,
+    )
+
+    def get_children(self, request, parent):
+        return parent.backup_jobs.restrict(request.user, 'view').annotate(
+            virtual_machine_count=Count('virtual_machines', distinct=True),
+        )
+
+
+## Views for bulk operations on BackupJob objects
 
 @register_model_view(BackupJob, 'bulk_edit', detail=False)
 class BackupJobBulkEditView(generic.BulkEditView):

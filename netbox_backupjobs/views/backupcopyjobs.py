@@ -1,10 +1,11 @@
+from django.db.models import Count
 from django.utils.translation import gettext_lazy as _
 
 from netbox.views import generic
 from utilities.views import ViewTab, register_model_view
 
 from netbox_backupjobs.models import BackupJob, BackupCopyJob
-from netbox_backupjobs.tables.backupjobs import BackupJobTable
+from netbox_backupjobs.tables.backupjobs import BackupCopyJobBackupJobsTable
 from netbox_backupjobs.tables.backupcopyjobs import BackupCopyJobTable
 from netbox_backupjobs.forms.models import BackupCopyJobForm
 from netbox_backupjobs.forms.filtersets import BackupCopyJobFilterForm
@@ -65,7 +66,7 @@ class BackupCopyJobDeleteView(generic.ObjectDeleteView):
 class BackupCopyJobBackupJobsView(generic.ObjectChildrenView):
     queryset = BackupCopyJob.objects.all()
     child_model = BackupJob
-    table = BackupJobTable
+    table = BackupCopyJobBackupJobsTable
     tab = ViewTab(
         label=_('Backup Jobs'),
         badge=lambda obj: obj.backup_jobs.count(),
@@ -74,7 +75,9 @@ class BackupCopyJobBackupJobsView(generic.ObjectChildrenView):
     )
 
     def get_children(self, request, parent):
-        return parent.backup_jobs.restrict(request.user, 'view').all()
+        return parent.backup_jobs.restrict(request.user, 'view').annotate(
+            virtual_machine_count=Count('virtual_machines', distinct=True),
+        )
 
 
 @register_model_view(BackupCopyJob, 'bulk_edit', detail=False)

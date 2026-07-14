@@ -9,8 +9,8 @@ from django.utils.translation import gettext_lazy as _
 
 from netbox.forms import NetBoxModelFilterSetForm
 from utilities.forms.fields import DynamicModelMultipleChoiceField, TagFilterField
-from utilities.forms.rendering import FieldSet
-from utilities.forms.widgets import DateTimePicker
+from utilities.forms.rendering import FieldSet, InlineFields
+from utilities.forms.widgets import DateTimePicker, TimePicker
 
 from ipam.models import IPAddress
 
@@ -24,11 +24,15 @@ from netbox_backupjobs.choices import (
     BackupCopyJobEnableDeletedVmDataRetentionChoices,
     BackupCopyJobGFSEnableChoices,
     BackupCopyJobGFSWeeklyEnabledChoices,
+    BackupCopyJobGFSWeeklyDayChoices,
     BackupCopyJobGFSMonthlyEnabledChoices,
+    BackupCopyJobGFSWeekOfMonthChoices,
     BackupCopyJobGFSYearlyEnabledChoices,
+    BackupCopyJobGFSMonthOfYearChoices,
     BackupCopyJobDataTransferModeChoices,
     BackupCopyJobTransactionLogCopyEnabledChoices,
     BackupCopyJobTransferWindowChoices,
+    BackupCopyJobScheduleHourChoices,
     BackupCopyJobRunAutomaticallyChoices,
     BackupCopyJobScheduleDailyEnabledChoices,
     BackupCopyJobScheduleDailyKindChoices,
@@ -57,20 +61,73 @@ class BackupCopyJobFilterForm(NetBoxModelFilterSetForm):
             name=_('Advanced Settings'),
         ),
         FieldSet(
-            'enable_gfs', 'weekly_enabled', 'monthly_enabled', 'yearly_enabled',
-            name=_('GFS Retention'),
+            'enable_gfs',
+            name=_('GFS Retention: Enabled'),
+        ),
+        FieldSet(
+            'weekly_enabled', 'weekly_keep_backups_on_day_of_week',
+            name=_('GFS Retention: Weekly'),
+        ),
+        FieldSet(
+            'monthly_enabled', 'monthly_keep_backups_week_of_month',
+            name=_('GFS Retention: Monthly'),
+        ),
+        FieldSet(
+            'yearly_enabled', 'yearly_keep_backups_on_month_of_year',
+            name=_('GFS Retention: Yearly'),
         ),
         FieldSet(
             'transfer_window',
+            'transfer_window_monday_schema',
+            InlineFields('transfer_window_monday_between_after', 'transfer_window_monday_between_before', label=_('Monday Schema Between')),
+            'transfer_window_tuesday_schema',
+            InlineFields('transfer_window_tuesday_between_after', 'transfer_window_tuesday_between_before', label=_('Tuesday Schema Between')),
+            'transfer_window_wednesday_schema',
+            InlineFields('transfer_window_wednesday_between_after', 'transfer_window_wednesday_between_before', label=_('Wednesday Schema Between')),
+            'transfer_window_thursday_schema',
+            InlineFields('transfer_window_thursday_between_after', 'transfer_window_thursday_between_before', label=_('Thursday Schema Between')),
+            'transfer_window_friday_schema',
+            InlineFields('transfer_window_friday_between_after', 'transfer_window_friday_between_before', label=_('Friday Schema Between')),
+            'transfer_window_saturday_schema',
+            InlineFields('transfer_window_saturday_between_after', 'transfer_window_saturday_between_before', label=_('Saturday Schema Between')),
+            'transfer_window_sunday_schema',
+            InlineFields('transfer_window_sunday_between_after', 'transfer_window_sunday_between_before', label=_('Sunday Schema Between')),
             name=_('Schedule Options when Mode is Immediate'),
         ),
         FieldSet(
-            'run_automatically', 'schedule_daily_enabled', 'schedule_daily_kind',
+            'run_automatically',
+            name=_('Periodic Schedule: Run Automatically'),
+        ),
+        FieldSet(
+            'schedule_daily_enabled', 'schedule_daily_kind',
+            name=_('Periodic Schedule: Daily'),
+        ),
+        FieldSet(
             'schedule_monthly_enabled', 'schedule_monthly_day_of_week', 'schedule_monthly_day_number_in_month',
             'schedule_monthly_day_of_month',
+            name=_('Periodic Schedule: Monthly'),
+        ),
+        FieldSet(
             'schedule_periodically_enabled', 'schedule_periodically_unit',
+            'schedule_periodically_monday_schema',
+            InlineFields('schedule_periodically_monday_between_after', 'schedule_periodically_monday_between_before', label=_('Monday Schema Between')),
+            'schedule_periodically_tuesday_schema',
+            InlineFields('schedule_periodically_tuesday_between_after', 'schedule_periodically_tuesday_between_before', label=_('Tuesday Schema Between')),
+            'schedule_periodically_wednesday_schema',
+            InlineFields('schedule_periodically_wednesday_between_after', 'schedule_periodically_wednesday_between_before', label=_('Wednesday Schema Between')),
+            'schedule_periodically_thursday_schema',
+            InlineFields('schedule_periodically_thursday_between_after', 'schedule_periodically_thursday_between_before', label=_('Thursday Schema Between')),
+            'schedule_periodically_friday_schema',
+            InlineFields('schedule_periodically_friday_between_after', 'schedule_periodically_friday_between_before', label=_('Friday Schema Between')),
+            'schedule_periodically_saturday_schema',
+            InlineFields('schedule_periodically_saturday_between_after', 'schedule_periodically_saturday_between_before', label=_('Saturday Schema Between')),
+            'schedule_periodically_sunday_schema',
+            InlineFields('schedule_periodically_sunday_between_after', 'schedule_periodically_sunday_between_before', label=_('Sunday Schema Between')),
+            name=_('Periodic Schedule: Periodically'),
+        ),
+        FieldSet(
             'after_job_enabled', 'after_job_name',
-            name=_('Schedule Options when Mode is Periodic'),
+            name=_('Periodic Schedule: After Job'),
         ),
         FieldSet('tag', name=_('Tags')),
     )
@@ -85,19 +142,16 @@ class BackupCopyJobFilterForm(NetBoxModelFilterSetForm):
     status = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobStatusChoices,
-        widget=select_all_widget(),
         label='Status',
     )
     mode = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobModeChoices,
-        widget=select_all_widget(),
         label=_('Copy Mode'),
     )
     data_transfer_mode = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobDataTransferModeChoices,
-        widget=select_all_widget(),
         label=_('Data Transfer Mode'),
     )
     target = forms.CharField(
@@ -121,7 +175,6 @@ class BackupCopyJobFilterForm(NetBoxModelFilterSetForm):
     last_backup_result = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobResultChoices,
-        widget=select_all_widget(),
         label=_('Last Backup Result'),
     )
     description = forms.CharField(
@@ -147,25 +200,21 @@ class BackupCopyJobFilterForm(NetBoxModelFilterSetForm):
     enable_deduplication = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobEnableDeduplicationChoices,
-        widget=select_all_widget(),
         label=_('Deduplication'),
     )
     storage_encryption_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobStorageEncryptionEnabledChoices,
-        widget=select_all_widget(),
         label=_('Storage Encryption'),
     )
     transaction_log_copy_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobTransactionLogCopyEnabledChoices,
-        widget=select_all_widget(),
         label=_('Transaction Log Copy'),
     )
     enable_deleted_vm_data_retention = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobEnableDeletedVmDataRetentionChoices,
-        widget=select_all_widget(),
         label=_('Deleted VM Retention'),
     )
 
@@ -173,57 +222,178 @@ class BackupCopyJobFilterForm(NetBoxModelFilterSetForm):
     enable_gfs = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobGFSEnableChoices,
-        widget=select_all_widget(),
         label=_('GFS Enabled'),
     )
     weekly_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobGFSWeeklyEnabledChoices,
-        widget=select_all_widget(),
         label=_('GFS Weekly'),
     )
     monthly_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobGFSMonthlyEnabledChoices,
-        widget=select_all_widget(),
         label=_('GFS Monthly'),
     )
     yearly_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobGFSYearlyEnabledChoices,
-        widget=select_all_widget(),
         label=_('GFS Yearly'),
+    )
+    weekly_keep_backups_on_day_of_week = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobGFSWeeklyDayChoices,
+        widget=select_all_widget(),
+        label=_('GFS Weekly Day'),
+    )
+    monthly_keep_backups_week_of_month = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobGFSWeekOfMonthChoices,
+        widget=select_all_widget(),
+        label=_('GFS Monthly Week'),
+    )
+    yearly_keep_backups_on_month_of_year = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobGFSMonthOfYearChoices,
+        widget=select_all_widget(),
+        label=_('GFS Yearly Month'),
     )
 
     # Schedule options
     transfer_window = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobTransferWindowChoices,
-        widget=select_all_widget(),
         label=_('Transfer Window'),
+    )
+    transfer_window_monday_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobScheduleHourChoices,
+        widget=select_all_widget(),
+        label=_('Monday Schema Hours'),
+    )
+    transfer_window_monday_between_after = forms.TimeField(
+        required=False,
+        label=_('Monday after:'),
+        widget=TimePicker(),
+    )
+    transfer_window_monday_between_before = forms.TimeField(
+        required=False,
+        label=_('Monday before:'),
+        widget=TimePicker(),
+    )
+    transfer_window_tuesday_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobScheduleHourChoices,
+        widget=select_all_widget(),
+        label=_('Tuesday Schema Hours'),
+    )
+    transfer_window_tuesday_between_after = forms.TimeField(
+        required=False,
+        label=_('Tuesday after:'),
+        widget=TimePicker(),
+    )
+    transfer_window_tuesday_between_before = forms.TimeField(
+        required=False,
+        label=_('Tuesday before:'),
+        widget=TimePicker(),
+    )
+    transfer_window_wednesday_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobScheduleHourChoices,
+        widget=select_all_widget(),
+        label=_('Wednesday Schema Hours'),
+    )
+    transfer_window_wednesday_between_after = forms.TimeField(
+        required=False,
+        label=_('Wednesday after:'),
+        widget=TimePicker(),
+    )
+    transfer_window_wednesday_between_before = forms.TimeField(
+        required=False,
+        label=_('Wednesday before:'),
+        widget=TimePicker(),
+    )
+    transfer_window_thursday_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobScheduleHourChoices,
+        widget=select_all_widget(),
+        label=_('Thursday Schema Hours'),
+    )
+    transfer_window_thursday_between_after = forms.TimeField(
+        required=False,
+        label=_('Thursday after:'),
+        widget=TimePicker(),
+    )
+    transfer_window_thursday_between_before = forms.TimeField(
+        required=False,
+        label=_('Thursday before:'),
+        widget=TimePicker(),
+    )
+    transfer_window_friday_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobScheduleHourChoices,
+        widget=select_all_widget(),
+        label=_('Friday Schema Hours'),
+    )
+    transfer_window_friday_between_after = forms.TimeField(
+        required=False,
+        label=_('Friday after:'),
+        widget=TimePicker(),
+    )
+    transfer_window_friday_between_before = forms.TimeField(
+        required=False,
+        label=_('Friday before:'),
+        widget=TimePicker(),
+    )
+    transfer_window_saturday_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobScheduleHourChoices,
+        widget=select_all_widget(),
+        label=_('Saturday Schema Hours'),
+    )
+    transfer_window_saturday_between_after = forms.TimeField(
+        required=False,
+        label=_('Saturday after:'),
+        widget=TimePicker(),
+    )
+    transfer_window_saturday_between_before = forms.TimeField(
+        required=False,
+        label=_('Saturday before:'),
+        widget=TimePicker(),
+    )
+    transfer_window_sunday_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobScheduleHourChoices,
+        widget=select_all_widget(),
+        label=_('Sunday Schema Hours'),
+    )
+    transfer_window_sunday_between_after = forms.TimeField(
+        required=False,
+        label=_('Sunday after:'),
+        widget=TimePicker(),
+    )
+    transfer_window_sunday_between_before = forms.TimeField(
+        required=False,
+        label=_('Sunday before:'),
+        widget=TimePicker(),
     )
     run_automatically = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobRunAutomaticallyChoices,
-        widget=select_all_widget(),
         label=_('Run Automatically'),
     )
     schedule_daily_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobScheduleDailyEnabledChoices,
-        widget=select_all_widget(),
         label=_('Daily Enabled'),
     )
     schedule_daily_kind = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobScheduleDailyKindChoices,
-        widget=select_all_widget(),
         label=_('Daily Kind'),
     )
     schedule_monthly_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobScheduleMonthlyEnabledChoices,
-        widget=select_all_widget(),
         label=_('Monthly Enabled'),
     )
     schedule_monthly_day_of_week = forms.MultipleChoiceField(
@@ -247,19 +417,128 @@ class BackupCopyJobFilterForm(NetBoxModelFilterSetForm):
     schedule_periodically_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobPeriodicallyEnabledChoices,
-        widget=select_all_widget(),
         label=_('Periodically Enabled'),
     )
     schedule_periodically_unit = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobPeriodicallyUnitChoices,
-        widget=select_all_widget(),
         label=_('Periodically Unit'),
+    )
+    schedule_periodically_monday_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobScheduleHourChoices,
+        widget=select_all_widget(),
+        label=_('Monday Schema Hours'),
+    )
+    schedule_periodically_monday_between_after = forms.TimeField(
+        required=False,
+        label=_('Monday after:'),
+        widget=TimePicker(),
+    )
+    schedule_periodically_monday_between_before = forms.TimeField(
+        required=False,
+        label=_('Monday before:'),
+        widget=TimePicker(),
+    )
+    schedule_periodically_tuesday_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobScheduleHourChoices,
+        widget=select_all_widget(),
+        label=_('Tuesday Schema Hours'),
+    )
+    schedule_periodically_tuesday_between_after = forms.TimeField(
+        required=False,
+        label=_('Tuesday after:'),
+        widget=TimePicker(),
+    )
+    schedule_periodically_tuesday_between_before = forms.TimeField(
+        required=False,
+        label=_('Tuesday before:'),
+        widget=TimePicker(),
+    )
+    schedule_periodically_wednesday_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobScheduleHourChoices,
+        widget=select_all_widget(),
+        label=_('Wednesday Schema Hours'),
+    )
+    schedule_periodically_wednesday_between_after = forms.TimeField(
+        required=False,
+        label=_('Wednesday after:'),
+        widget=TimePicker(),
+    )
+    schedule_periodically_wednesday_between_before = forms.TimeField(
+        required=False,
+        label=_('Wednesday before:'),
+        widget=TimePicker(),
+    )
+    schedule_periodically_thursday_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobScheduleHourChoices,
+        widget=select_all_widget(),
+        label=_('Thursday Schema Hours'),
+    )
+    schedule_periodically_thursday_between_after = forms.TimeField(
+        required=False,
+        label=_('Thursday after:'),
+        widget=TimePicker(),
+    )
+    schedule_periodically_thursday_between_before = forms.TimeField(
+        required=False,
+        label=_('Thursday before:'),
+        widget=TimePicker(),
+    )
+    schedule_periodically_friday_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobScheduleHourChoices,
+        widget=select_all_widget(),
+        label=_('Friday Schema Hours'),
+    )
+    schedule_periodically_friday_between_after = forms.TimeField(
+        required=False,
+        label=_('Friday after:'),
+        widget=TimePicker(),
+    )
+    schedule_periodically_friday_between_before = forms.TimeField(
+        required=False,
+        label=_('Friday before:'),
+        widget=TimePicker(),
+    )
+    schedule_periodically_saturday_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobScheduleHourChoices,
+        widget=select_all_widget(),
+        label=_('Saturday Schema Hours'),
+    )
+    schedule_periodically_saturday_between_after = forms.TimeField(
+        required=False,
+        label=_('Saturday after:'),
+        widget=TimePicker(),
+    )
+    schedule_periodically_saturday_between_before = forms.TimeField(
+        required=False,
+        label=_('Saturday before:'),
+        widget=TimePicker(),
+    )
+    schedule_periodically_sunday_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=BackupCopyJobScheduleHourChoices,
+        widget=select_all_widget(),
+        label=_('Sunday Schema Hours'),
+    )
+    schedule_periodically_sunday_between_after = forms.TimeField(
+        required=False,
+        label=_('Sunday after:'),
+        widget=TimePicker(),
+    )
+    schedule_periodically_sunday_between_before = forms.TimeField(
+        required=False,
+        label=_('Sunday before:'),
+        widget=TimePicker(),
     )
     after_job_enabled = forms.MultipleChoiceField(
         required=False,
         choices=BackupCopyJobAfterJobEnabledChoices,
-        widget=select_all_widget(),
         label=_('After Job Enabled'),
     )
     after_job_name = DynamicModelMultipleChoiceField(

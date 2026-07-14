@@ -410,7 +410,7 @@ class BackupCopyJobBulkEditForm(NetBoxModelBulkEditForm):
             'transfer_window_monday_schema', 'transfer_window_tuesday_schema', 'transfer_window_wednesday_schema',
             'transfer_window_thursday_schema', 'transfer_window_friday_schema', 'transfer_window_saturday_schema',
             'transfer_window_sunday_schema',
-            name=_('Schedule Options when Mode is Immediate'),
+            name=_('Schedule Options when Copy Mode is Immediate'),
         ),
         FieldSet(
             'run_automatically',
@@ -424,7 +424,7 @@ class BackupCopyJobBulkEditForm(NetBoxModelBulkEditForm):
             'schedule_periodically_friday_schema', 'schedule_periodically_saturday_schema',
             'schedule_periodically_sunday_schema',
             'after_job_enabled', 'after_job_name',
-            name=_('Schedule Options when Mode is Periodic'),
+            name=_('Schedule Options when Copy Mode is Periodic'),
         ),
     )
     nullable_fields = [

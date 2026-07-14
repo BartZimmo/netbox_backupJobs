@@ -1,5 +1,6 @@
 import django_tables2 as tables
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from netbox.tables import NetBoxTable, columns
@@ -58,6 +59,7 @@ class BackupCopyJobTable(NetBoxTable):
     backup_jobs = columns.ManyToManyColumn(
         verbose_name=_('Backup Jobs'),
         linkify_item=True,
+        separator=mark_safe('<br>'),
     )
 
     # Advanced settings
